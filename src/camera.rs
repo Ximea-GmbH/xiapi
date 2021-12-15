@@ -1,4 +1,6 @@
+use std::ffi::CStr;
 use xiapi_sys::*;
+use xiapi_sys::XI_RET::XI_INVALID_ARG;
 
 pub struct Camera {
     device_handle: HANDLE,
@@ -32,6 +34,41 @@ impl Camera {
             _ => Err(err),
         }
     }
+
+    unsafe fn param_float(&self, param: &[u8]) -> Result<f32, XI_RETURN>{
+        let mut result: f32 = 0.0;
+        let param_c = match CStr::from_bytes_with_nul(param){
+            Ok(c) => {c},
+            Err(_) => {return Err(XI_INVALID_ARG as XI_RETURN)},
+        };
+        let err = xiapi_sys::xiGetParamFloat(self.device_handle, param_c.as_ptr(), &mut result);
+        match err as u32 {
+            XI_RET::XI_OK => Ok(result),
+            _ => Err(err),
+        }
+    }
+
+    unsafe fn set_param_float(&mut self, param: &[u8], value: f32) -> Result<(), XI_RETURN>{
+        let param_c = match CStr::from_bytes_with_nul(param){
+            Ok(c) => {c},
+            Err(_) => {return Err(XI_INVALID_ARG as XI_RETURN)},
+        };
+        let err = xiapi_sys::xiSetParamFloat(self.device_handle, param_c.as_ptr(), value);
+        match err as u32 {
+            XI_RET::XI_OK => Ok(()),
+            _ => Err(err),
+        }
+    }
+
+    pub fn exposure(&self) -> Result<f32, XI_RETURN> {
+        unsafe {self.param_float(XI_PRM_EXPOSURE)}
+    }
+
+    pub fn set_exposure(&mut self, value: f32) -> Result<(), XI_RETURN>{
+       unsafe {self.set_param_float(XI_PRM_EXPOSURE, value)}
+    }
+
+
 }
 
 impl AcquisitionBuffer {
