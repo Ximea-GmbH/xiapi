@@ -68,6 +68,13 @@ impl Camera {
        unsafe {self.set_param_float(XI_PRM_EXPOSURE, value)}
     }
 
+    pub fn gain(&self) -> Result<f32, XI_RETURN> {
+        unsafe {self.param_float(XI_PRM_GAIN)}
+    }
+
+    pub fn set_gain(&mut self, value: f32) -> Result<(), XI_RETURN> {
+        unsafe {self.set_param_float(XI_PRM_GAIN, value)}
+    }
 
 }
 

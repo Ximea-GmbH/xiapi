@@ -28,4 +28,13 @@ mod tests {
         assert_abs_diff_eq!(exp, 12_345.0, epsilon = 10.0);
         Ok(())
     }
+
+    #[test]
+    #[serial]
+    fn default_gain() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        let gain = cam.gain()?;
+        assert_eq!(gain, 0.0);
+        Ok(())
+    }
 }
