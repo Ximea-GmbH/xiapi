@@ -1,12 +1,14 @@
 pub use camera::*;
+pub use image::*;
 
 pub mod camera;
+pub mod image;
 
 #[cfg(test)]
 mod tests {
-    use xiapi_sys::XI_RETURN;
-    use serial_test::serial;
     use approx::assert_abs_diff_eq;
+    use serial_test::serial;
+    use xiapi_sys::XI_RETURN;
 
     use crate::open_device;
 
@@ -35,6 +37,19 @@ mod tests {
         let cam = open_device(None)?;
         let gain = cam.gain()?;
         assert_eq!(gain, 0.0);
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn get_image() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        let acq = cam.start_acquisition()?;
+        let img = acq.next_image::<u8>(None)?;
+        let test = unsafe { img.pixel(100, 100) }.unwrap_or_else(|| {
+            panic!("Pixel value was invalid!");
+        });
+        print!("Pixel Value was read as {}", *test);
         Ok(())
     }
 }
