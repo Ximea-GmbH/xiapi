@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 xiapi-sys = {git = "https://github.com/Ximea-GmbH/xiapi-sys.git"}
 
+
 [dev-dependencies]
-serial_test = "0.5.1"
+serial_test = {version = "0.6.0", features = ["file_locks"]}
 approx = "0.5.1"

@@ -1,13 +1,24 @@
+/*
+ * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
+ */
+
 use std::marker::PhantomData;
 use std::mem::{size_of, MaybeUninit};
 use xiapi_sys::XI_IMG;
 
+/// An Image as it is captured by the camera.
 pub struct Image<T> {
     pub(crate) xi_img: XI_IMG,
     pix_type: std::marker::PhantomData<T>,
 }
 
 impl<T> Image<T> {
+
+    /// Creates a new image.
+    ///
+    /// The returned image does not contain any data and image metadata are all empty or zero.
+    // FIXME: This function should not be public as the only way to get an image should be through the camera
+    // FIXME: It should probably also be unsafe.
     pub fn new() -> Self {
         let image = unsafe {
             let mut img = MaybeUninit::<XI_IMG>::zeroed().assume_init();
@@ -20,6 +31,18 @@ impl<T> Image<T> {
         }
     }
 
+    /// Get a Pixel from the image.
+    ///
+    /// # Arguments
+    ///
+    /// * `x`: Horizontal coordinate of the requested pixel.
+    /// * `y`: Vertical coordinate of the requested pixel.
+    ///
+    /// returns: Option<&T> A reference to the pixel
+    ///
+    /// # Safety
+    /// You must ensure that the image was properly initialized and contains valid pixel values
+    /// before calling this method.
     pub unsafe fn pixel(&self, x: usize, y: usize) -> Option<&T> {
         let buffer = self.xi_img.bp as *const u8;
         // stride is the total length of a row in bytes

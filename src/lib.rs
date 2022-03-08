@@ -1,8 +1,22 @@
-pub use camera::*;
-pub use image::*;
+/*
+ * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
+ */
 
-pub mod camera;
-pub mod image;
+//! High level Rust bindings for the XIMEA camera API
+//!
+//! This crate provides a common interface for all XIMEA cameras.
+//! It is a higher level wrapper of the xiapi-sys crate which is generated automatically
+//! (via bindgen) from the XIMEA C API.
+
+#![warn(missing_docs)]
+
+mod camera;
+pub use self::camera::open_device;
+pub use self::camera::Camera;
+pub use self::camera::AcquisitionBuffer;
+
+mod image;
+pub use self::image::Image;
 
 #[cfg(test)]
 mod tests {
