@@ -62,7 +62,7 @@ pub fn open_device(dev_id: Option<u32>) -> Result<Camera, XI_RETURN> {
     let mut device_handle: HANDLE = std::ptr::null_mut();
     let dev_id = dev_id.unwrap_or(0);
     let err = unsafe { xiapi_sys::xiOpenDevice(dev_id, &mut device_handle) };
-    match err as u32 {
+    match err as XI_RET::Type {
         XI_RET::XI_OK => Ok(Camera { device_handle }),
         _ => Err(err),
     }
@@ -133,7 +133,7 @@ impl Camera {
     /// # }
     pub fn start_acquisition(self) -> Result<AcquisitionBuffer, XI_RETURN> {
         let err = unsafe { xiapi_sys::xiStartAcquisition(self.device_handle) };
-        match err as u32 {
+        match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(AcquisitionBuffer { camera: self }),
             _ => Err(err),
         }
@@ -145,7 +145,7 @@ impl Camera {
             Err(_) => return Err(XI_INVALID_ARG as XI_RETURN),
         };
         let err = T::set_param(self.device_handle, param_c.as_ptr(), value);
-        match err as u32 {
+        match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
             _ => Err(err),
         }
@@ -158,7 +158,7 @@ impl Camera {
            Err(_) => return Err(XI_INVALID_ARG as XI_RETURN),
        };
         let err = T::get_param(self.device_handle, param_c.as_ptr(), &mut value);
-        match err as u32 {
+        match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(value),
             _ => Err(err),
         }
@@ -222,7 +222,7 @@ impl AcquisitionBuffer {
     /// but not retrieved from the acquisition buffer can no longer be accessed.
     pub fn stop_acquisition(self) -> Result<Camera, XI_RETURN> {
         let err = unsafe { xiapi_sys::xiStopAcquisition(self.camera.device_handle) };
-        match err as u32 {
+        match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(self.camera),
             _ => Err(err),
         }
