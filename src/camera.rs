@@ -2,12 +2,28 @@
  * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
  */
 
-use crate::Image;
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use xiapi_sys::XI_RET::XI_INVALID_ARG;
-use xiapi_sys::*;
 
+use paste::paste;
+use xiapi_sys::*;
+use xiapi_sys::XI_RET::XI_INVALID_ARG;
+
+use crate::Image;
+
+#[macro_export]
+macro_rules! param {
+        ($prm:ident : $type:ty) => {
+            paste ! {
+            pub fn $prm(&mut self, value: $type) -> Result<(), XI_RETURN>{
+                unsafe {self.set_param(paste!([<XI_PRM_ $prm:upper>]), value) }
+            }
+            pub fn [<set_ $prm>](&self) -> Result<$type, XI_RETURN>{
+               unsafe {self.param([<XI_PRM_ $prm:upper>])}
+            }
+            }
+        }
+    }
 /// Connected and initialized XIMEA camera.
 ///
 /// Must be mutable to allow changing any parameters. A non-mutable Camera can be used from
@@ -181,13 +197,16 @@ impl Camera {
         unsafe { self.set_param(XI_PRM_EXPOSURE, value) }
     }
 
+    param!(acq_buffer_size : f32);
+
+
     /// Current gain setting in dB.
     ///
     /// This function returns the actual current gain for this camera.
     /// If the camera has more than one type of gain, you can use [Self::set_gain_selector()] to
     /// select a gain.
     pub fn gain(&self) -> Result<f32, XI_RETURN> {
-        unsafe {self.param(XI_PRM_GAIN)}
+        unsafe { self.param(XI_PRM_GAIN) }
     }
 
     /// Set the gain in dB.
