@@ -11,19 +11,58 @@ use xiapi_sys::XI_RET::XI_INVALID_ARG;
 
 use crate::Image;
 
-#[macro_export]
+/// This macro is used to generate getters and setters for xiAPI parameters.
+/// The parameters are specified using the following syntax: \[mut\] <ParamName>: <Type>
+/// Documentation on the parameter will be added to the getter.
+/// Generic documentation is always added to the setter.
+///
+/// ## Examples:
+///
+/// ```no_run
+/// param!(
+///     mut exposure: f32;
+/// )
+/// ```
 macro_rules! param {
-        ($prm:ident : $type:ty) => {
-            paste ! {
-            pub fn $prm(&mut self, value: $type) -> Result<(), XI_RETURN>{
-                unsafe {self.set_param(paste!([<XI_PRM_ $prm:upper>]), value) }
+    // This rule follows the Incremental TT muncher pattern.
+    () => {};
+    // For mutable parameters:
+    (
+        $(#[doc = $doc:expr])*
+        mut $prm:ident : $type:ty;
+        $($tail:tt)*
+    ) => {
+        paste! {
+            // Generate a getter with custom documentation
+            $(#[doc = $doc])*
+            pub fn $prm(&self) -> Result<$type, XI_RETURN>{
+                unsafe {self.param([<XI_PRM_ $prm:upper>]) }
+             }
+            // Generate a setter
+            // TODO: Customizable documentation for setters
+            #[doc = "Set the `" $prm "` parameter. See also [Self::" $prm "()]"]
+            pub fn [<set_ $prm>](& mut self, value: $type ) -> Result<(), XI_RETURN>{
+                unsafe {self.set_param([<XI_PRM_ $prm:upper>], value)}
             }
-            pub fn [<set_ $prm>](&self) -> Result<$type, XI_RETURN>{
-               unsafe {self.param([<XI_PRM_ $prm:upper>])}
-            }
-            }
+            param!($($tail)*);
         }
-    }
+    };
+    // For immutable parameters
+    (
+        $(#[doc = $doc:expr])*
+        $prm:ident : $type:ty;
+        $($tail:tt)*
+    ) => {
+        paste! {
+            // Generate a getter with custom documentation
+            $(#[doc = $doc])*
+            pub fn $prm( &self) -> Result < $type, XI_RETURN >{
+                unsafe {self.param(paste ! ([ < XI_PRM_ $prm: upper > ]))}
+            }
+            param!($($tail)*);
+        }
+    };
+}
 /// Connected and initialized XIMEA camera.
 ///
 /// Must be mutable to allow changing any parameters. A non-mutable Camera can be used from
@@ -92,22 +131,30 @@ impl Drop for Camera {
     }
 }
 
-trait ParamType:Default{
-    unsafe fn get_param(handle: xiapi_sys::HANDLE, prm: *const std::os::raw::c_char, value: &mut Self) -> XI_RETURN;
-    unsafe fn set_param(handle: xiapi_sys::HANDLE, prm: *const std::os::raw::c_char, value: Self) -> XI_RETURN;
+trait ParamType: Default {
+    unsafe fn get_param(
+        handle: xiapi_sys::HANDLE,
+        prm: *const std::os::raw::c_char,
+        value: &mut Self,
+    ) -> XI_RETURN;
+    unsafe fn set_param(
+        handle: xiapi_sys::HANDLE,
+        prm: *const std::os::raw::c_char,
+        value: Self,
+    ) -> XI_RETURN;
 }
 
-impl ParamType for f32{
+impl ParamType for f32 {
     unsafe fn get_param(handle: HANDLE, prm: *const c_char, value: &mut Self) -> XI_RETURN {
-       xiapi_sys::xiGetParamFloat(handle, prm, value)
+        xiapi_sys::xiGetParamFloat(handle, prm, value)
     }
 
     unsafe fn set_param(handle: HANDLE, prm: *const c_char, value: Self) -> XI_RETURN {
-       xiapi_sys::xiSetParamFloat(handle, prm, value)
+        xiapi_sys::xiSetParamFloat(handle, prm, value)
     }
 }
 
-impl ParamType for i32{
+impl ParamType for i32 {
     unsafe fn get_param(handle: HANDLE, prm: *const c_char, value: &mut Self) -> XI_RETURN {
         xiapi_sys::xiGetParamInt(handle, prm, value)
     }
@@ -117,10 +164,10 @@ impl ParamType for i32{
     }
 }
 
-impl ParamType for u32{
+impl ParamType for u32 {
     // Selectors in xiAPI are defined as unsigned int, but treated as if they were signed
     unsafe fn get_param(handle: HANDLE, prm: *const c_char, value: &mut Self) -> XI_RETURN {
-        xiapi_sys::xiGetParamInt(handle, prm , value as *mut u32 as *mut i32)
+        xiapi_sys::xiGetParamInt(handle, prm, value as *mut u32 as *mut i32)
     }
 
     unsafe fn set_param(handle: HANDLE, prm: *const c_char, value: Self) -> XI_RETURN {
@@ -168,11 +215,11 @@ impl Camera {
     }
 
     unsafe fn param<T: ParamType>(&self, param: &[u8]) -> Result<T, XI_RETURN> {
-       let mut value = T::default();
-       let param_c = match CStr::from_bytes_with_nul(param) {
-           Ok(c) => c,
-           Err(_) => return Err(XI_INVALID_ARG as XI_RETURN),
-       };
+        let mut value = T::default();
+        let param_c = match CStr::from_bytes_with_nul(param) {
+            Ok(c) => c,
+            Err(_) => return Err(XI_INVALID_ARG as XI_RETURN),
+        };
         let err = T::get_param(self.device_handle, param_c.as_ptr(), &mut value);
         match err as u32 {
             XI_RET::XI_OK => Ok(value),
@@ -180,57 +227,24 @@ impl Camera {
         }
     }
 
-    /// Current exposure time in microseconds.
-    ///
-    /// This function returns the actual current exposure time for this camera.
-    pub fn exposure(&self) -> Result<f32, XI_RETURN> {
-        unsafe { self.param(XI_PRM_EXPOSURE) }
-    }
+    param! {
+        /// Current exposure time in microseconds.
+        mut exposure: f32;
 
-    /// Set the exposure time in microseconds.
-    ///
-    /// Not all values in the correct range are valid exposure times. Most image sensors have
-    /// certain restrictions for the possible values (e.g. increments related to sensor timings). If
-    /// the value passed to this function is not valid, the closest possible value will be used
-    /// instead.
-    pub fn set_exposure(&mut self, value: f32) -> Result<(), XI_RETURN> {
-        unsafe { self.set_param(XI_PRM_EXPOSURE, value) }
-    }
+        /// Set the gain in dB.
+        /// If the camera has more than one type of gain, you can use [Self::set_gain_selector()] to
+        /// select a gain.
+        mut gain: f32;
 
-    param!(acq_buffer_size : f32);
+        /// The currently selected type of gain for [Self::gain()] and [Self::set_gain()]
+        mut gain_selector: XI_GAIN_SELECTOR_TYPE::Type;
 
-
-    /// Current gain setting in dB.
-    ///
-    /// This function returns the actual current gain for this camera.
-    /// If the camera has more than one type of gain, you can use [Self::set_gain_selector()] to
-    /// select a gain.
-    pub fn gain(&self) -> Result<f32, XI_RETURN> {
-        unsafe { self.param(XI_PRM_GAIN) }
-    }
-
-    /// Set the gain in dB.
-    ///
-    /// Sets the current gain for this camera.
-    /// If the camera has more than one type of gain, you can use [Self::set_gain_selector()] to
-    /// select a gain.
-    pub fn set_gain(&mut self, value: f32) -> Result<(), XI_RETURN> {
-        unsafe { self.set_param(XI_PRM_GAIN, value) }
-    }
-
-    /// The currently selected type of gain for [Self::gain()] and [Self::set_gain()].
-    pub fn gain_selector(&self) -> Result<XI_GAIN_SELECTOR_TYPE::Type, XI_RETURN> {
-        unsafe { self.param(XI_PRM_GAIN_SELECTOR)}
-    }
-
-    /// Select the type of gain for [Self::gain()] and [Self::set_gain()].
-    pub fn set_gain_selector(&mut self, value: XI_GAIN_SELECTOR_TYPE::Type) -> Result<(), XI_RETURN>{
-        unsafe { self.set_param(XI_PRM_GAIN_SELECTOR, value)}
+        /// Format of the image data
+        mut image_data_format: XI_IMG_FORMAT::Type;
     }
 }
 
 impl AcquisitionBuffer {
-
     /// Stop the image acquisition.
     ///
     /// This function consumes the acquisition buffer and returns the contained camera.

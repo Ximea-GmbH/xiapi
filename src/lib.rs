@@ -10,13 +10,13 @@
 
 #![warn(missing_docs)]
 
-mod camera;
-pub use self::camera::open_device;
-pub use self::camera::Camera;
 pub use self::camera::AcquisitionBuffer;
-
-mod image;
+pub use self::camera::Camera;
+pub use self::camera::open_device;
 pub use self::image::Image;
+
+mod camera;
+mod image;
 
 #[cfg(test)]
 mod tests {

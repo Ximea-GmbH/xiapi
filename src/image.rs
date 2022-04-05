@@ -3,7 +3,8 @@
  */
 
 use std::marker::PhantomData;
-use std::mem::{size_of, MaybeUninit};
+use std::mem::{MaybeUninit, size_of};
+
 use xiapi_sys::XI_IMG;
 
 /// An Image as it is captured by the camera.
@@ -13,7 +14,6 @@ pub struct Image<T> {
 }
 
 impl<T> Image<T> {
-
     /// Creates a new image.
     ///
     /// The returned image does not contain any data and image metadata are all empty or zero.
