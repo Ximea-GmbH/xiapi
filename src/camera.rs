@@ -1,13 +1,11 @@
 /*
  * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
  */
-
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
 use paste::paste;
 use xiapi_sys::*;
-use xiapi_sys::XI_RET::XI_INVALID_ARG;
 
 use crate::Image;
 
@@ -205,7 +203,7 @@ impl Camera {
     unsafe fn set_param<T: ParamType>(&mut self, param: &[u8], value: T) -> Result<(), XI_RETURN> {
         let param_c = match CStr::from_bytes_with_nul(param) {
             Ok(c) => c,
-            Err(_) => return Err(XI_INVALID_ARG as XI_RETURN),
+            Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
         };
         let err = T::set_param(self.device_handle, param_c.as_ptr(), value);
         match err as u32 {
@@ -218,7 +216,7 @@ impl Camera {
         let mut value = T::default();
         let param_c = match CStr::from_bytes_with_nul(param) {
             Ok(c) => c,
-            Err(_) => return Err(XI_INVALID_ARG as XI_RETURN),
+            Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
         };
         let err = T::get_param(self.device_handle, param_c.as_ptr(), &mut value);
         match err as u32 {
