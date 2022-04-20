@@ -17,9 +17,10 @@ impl<T> Image<T> {
     /// Creates a new image.
     ///
     /// The returned image does not contain any data and image metadata are all empty or zero.
-    // FIXME: This function should not be public as the only way to get an image should be through the camera
-    // FIXME: It should probably also be unsafe.
-    pub fn new() -> Self {
+    /// This function is not visible outside this crate, since it should not be possible to create
+    /// uninitialized images.
+    /// It is used inside the crate to create an image that is then passed to xiGetImage.
+    pub(crate) fn new() -> Self {
         let image = unsafe {
             let mut img = MaybeUninit::<XI_IMG>::zeroed().assume_init();
             img.size = size_of::<XI_IMG>() as u32;
