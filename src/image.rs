@@ -39,17 +39,23 @@ impl<T> Image<T> {
     /// * `y`: Vertical coordinate of the requested pixel.
     ///
     /// returns: Option<&T> A reference to the pixel
-    ///
-    /// # Safety
-    /// You must ensure that the image was properly initialized and contains valid pixel values
-    /// before calling this method.
-    pub unsafe fn pixel(&self, x: usize, y: usize) -> Option<&T> {
+    pub fn pixel(&self, x: usize, y: usize) -> Option<&T> {
         let buffer = self.xi_img.bp as *const u8;
+        // Check if uninitialized
+        if buffer.is_null() {
+            return None;
+        }
+        // Bounds check
+        if x >= self.xi_img.width as usize || y >= self.xi_img.height as usize {
+            return None;
+        }
         // stride is the total length of a row in bytes
         let stride = self.xi_img.width as usize * size_of::<T>() + self.xi_img.padding_x as usize;
         let offset = (stride * y) + (x * size_of::<T>());
-        let pixel_pointer = buffer.add(offset) as *const T;
-        pixel_pointer.as_ref()
+        unsafe {
+            let pixel_pointer = buffer.add(offset) as *const T;
+            pixel_pointer.as_ref()
+        }
     }
 }
 

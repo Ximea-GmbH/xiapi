@@ -60,7 +60,7 @@ mod tests {
         let cam = open_device(None)?;
         let acq = cam.start_acquisition()?;
         let img = acq.next_image::<u8>(None)?;
-        let test = unsafe { img.pixel(100, 100) }.unwrap_or_else(|| {
+        let test = img.pixel(100, 100).unwrap_or_else(|| {
             panic!("Pixel value was invalid!");
         });
         print!("Pixel Value was read as {}", *test);
