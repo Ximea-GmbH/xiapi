@@ -3,7 +3,7 @@
  */
 
 use std::marker::PhantomData;
-use std::mem::{MaybeUninit, size_of};
+use std::mem::{size_of, MaybeUninit};
 
 use xiapi_sys::XI_IMG;
 
@@ -57,6 +57,16 @@ impl<T> Image<T> {
             let pixel_pointer = buffer.add(offset) as *const T;
             pixel_pointer.as_ref()
         }
+    }
+
+    /// Get the width of this image in pixels
+    pub fn width(&self) -> u32 {
+        self.xi_img.width
+    }
+
+    /// Get the height of this image
+    pub fn height(&self) -> u32 {
+        self.xi_img.height
     }
 }
 

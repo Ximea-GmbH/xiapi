@@ -10,9 +10,9 @@
 
 #![warn(missing_docs)]
 
+pub use self::camera::open_device;
 pub use self::camera::AcquisitionBuffer;
 pub use self::camera::Camera;
-pub use self::camera::open_device;
 pub use self::image::Image;
 
 mod camera;
