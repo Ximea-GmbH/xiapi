@@ -2,6 +2,9 @@
  * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
  */
 use std::ffi::CStr;
+use std::marker::PhantomData;
+use std::mem::MaybeUninit;
+use std::mem::size_of;
 use std::os::raw::c_char;
 
 use paste::paste;
@@ -262,10 +265,19 @@ impl AcquisitionBuffer {
     /// Get the next image.
     ///
     /// Returns an [Image] which refers to memory in this [AcquisitionBuffer].
-    // TODO: Ensure images returned from this can't have a longer lifetime than the buffer
-    pub fn next_image<T>(&self, timeout: Option<u32>) -> Result<Image<T>, XI_RETURN> {
+    /// The image will have a reference with the same lifetime as the AcquisitionBuffer making sure
+    /// that it is always "safe" to use (However, it may still be overwritten in unsafe buffer mode).
+    pub fn next_image<'a, T>(&'a self, timeout: Option<u32>) -> Result<Image<'a, T>, XI_RETURN> {
         let timeout = timeout.unwrap_or(u32::MAX);
-        let mut image = Image::new();
+        let xi_img = unsafe {
+            let mut img = MaybeUninit::<XI_IMG>::zeroed().assume_init();
+            img.size = size_of::<XI_IMG>() as u32;
+            img
+        };
+        let mut image = Image::<'a, T> {
+            xi_img,
+            pix_type: PhantomData::default(),
+        };
         unsafe {
             xiapi_sys::xiGetImage(self.camera.device_handle, timeout, &mut image.xi_img);
         }

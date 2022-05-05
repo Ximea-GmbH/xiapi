@@ -2,35 +2,17 @@
  * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
  */
 
-use std::marker::PhantomData;
-use std::mem::{MaybeUninit, size_of};
+use std::mem::size_of;
 
 use xiapi_sys::XI_IMG;
 
 /// An Image as it is captured by the camera.
-pub struct Image<T> {
+pub struct Image<'a, T> {
     pub(crate) xi_img: XI_IMG,
-    pix_type: std::marker::PhantomData<T>,
+    pub(crate) pix_type: std::marker::PhantomData<&'a T>,
 }
 
-impl<T> Image<T> {
-    /// Creates a new image.
-    ///
-    /// The returned image does not contain any data and image metadata are all empty or zero.
-    // FIXME: This function should not be public as the only way to get an image should be through the camera
-    // FIXME: It should probably also be unsafe.
-    pub fn new() -> Self {
-        let image = unsafe {
-            let mut img = MaybeUninit::<XI_IMG>::zeroed().assume_init();
-            img.size = size_of::<XI_IMG>() as u32;
-            img
-        };
-        Self {
-            xi_img: image,
-            pix_type: PhantomData,
-        }
-    }
-
+impl<'a, T> Image<'a, T> {
     /// Get a Pixel from the image.
     ///
     /// # Arguments
@@ -53,8 +35,3 @@ impl<T> Image<T> {
     }
 }
 
-impl<T> Default for Image<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
