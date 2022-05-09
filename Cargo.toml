@@ -9,6 +9,7 @@ rust-version = "1.59.0"
 [dependencies]
 xiapi-sys = { git = "https://github.com/Ximea-GmbH/xiapi-sys.git" }
 paste = "1.0.6"
+image = { version = "0.24.2", optional= true}
 
 
 [dev-dependencies]
@@ -18,3 +19,7 @@ approx = "0.5.1"
 [[example]]
 name = "xi_sample"
 path = "examples/xi_sample.rs"
+
+[features]
+default = ["image"]
+image = ["dep:image"]

@@ -3,6 +3,10 @@
  */
 
 use std::mem::size_of;
+use std::slice::from_raw_parts;
+
+#[cfg(feature = "image")]
+use image::{ImageBuffer, Pixel};
 
 use xiapi_sys::XI_IMG;
 
@@ -11,6 +15,7 @@ pub struct Image<'a, T> {
     pub(crate) xi_img: XI_IMG,
     pub(crate) pix_type: std::marker::PhantomData<&'a T>,
 }
+
 
 impl<'a, T> Image<'a, T> {
     /// Get a Pixel from the image.
@@ -48,6 +53,40 @@ impl<'a, T> Image<'a, T> {
     /// Get the height of this image
     pub fn height(&self) -> u32 {
         self.xi_img.height
+    }
+
+    pub(crate) fn data(&'a self) -> &'a [T] {
+        unsafe {
+            from_raw_parts(self.xi_img.bp as *const T, self.xi_img.bp_size as usize)
+        }
+    }
+}
+
+#[cfg(feature = "image")]
+impl<P> From<Image<'_, P::Subpixel>> for ImageBuffer<P, Vec<P::Subpixel>>
+where
+    P: Pixel,
+{
+    /// Converts the image to an [ImageBuffer]
+    /// ```
+    /// # #[serial_test::file_serial]
+    /// # fn main() -> Result<(), xiapi_sys::XI_RETURN>{
+    /// # use image::{ImageBuffer, Luma};
+    /// # let cam = xiapi::open_device(None)?;
+    /// # let buffer = cam.start_acquisition()?;
+    /// let image = buffer.next_image::<u8>(None)?;
+    /// let image_buffer = ImageBuffer::<Luma<u8>,_>::from(image);
+    /// image_buffer.save("test.jpg");
+    /// # Ok(())
+    /// # }
+    /// ```
+
+    fn from(image: Image<P::Subpixel>) -> Self {
+        let data = Vec::from(image.data());
+        match Self::from_raw(image.width(), image.height(), data) {
+            None => panic!("Failed to create image from raw pointer"),
+            Some(buffer) => {buffer}
+        }
     }
 }
 
