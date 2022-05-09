@@ -60,10 +60,16 @@ mod tests {
         let cam = open_device(None)?;
         let acq = cam.start_acquisition()?;
         let img = acq.next_image::<u8>(None)?;
-        let test = img.pixel(100, 100).unwrap_or_else(|| {
+        let test_pix = img.pixel(100, 0).unwrap_or_else(|| {
             panic!("Pixel value was invalid!");
         });
-        print!("Pixel Value was read as {}", *test);
+        let test_data = img.data();
+        let test_data_pix = test_data.get(100).unwrap_or_else(|| {
+            panic!("Out of bounds error on image data!");
+        });
+        assert_eq!(test_pix, test_data_pix);
+
         Ok(())
     }
+
 }
