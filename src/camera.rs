@@ -19,7 +19,7 @@ use crate::Image;
 ///
 /// ## Examples:
 ///
-/// ```no_run
+/// ```ignore
 /// param!(
 ///     mut exposure: f32;
 /// )
@@ -232,6 +232,9 @@ impl Camera {
         /// Current exposure time in microseconds.
         mut exposure: f32;
 
+        /// Sets the number of times of exposure in one frame.
+        mut exposure_burst_count: i32;
+
         /// Set the gain in dB.
         /// If the camera has more than one type of gain, you can use [Self::set_gain_selector()] to
         /// select a gain.
@@ -239,6 +242,12 @@ impl Camera {
 
         /// The currently selected type of gain for [Self::gain()] and [Self::set_gain()]
         mut gain_selector: XI_GAIN_SELECTOR_TYPE::Type;
+
+        /// Changes image resolution by binning or skipping
+        mut downsampling: XI_DOWNSAMPLING_VALUE::Type;
+
+        /// Changes the downsampling type between binning and skipping
+        mut downsampling_type: XI_DOWNSAMPLING_TYPE::Type;
 
         /// Format of the image data
         mut image_data_format: XI_IMG_FORMAT::Type;
