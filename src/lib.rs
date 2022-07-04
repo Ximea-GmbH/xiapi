@@ -26,7 +26,8 @@ mod tests {
     use xiapi_sys::XI_GAIN_SELECTOR_TYPE::XI_GAIN_SELECTOR_ALL;
     use xiapi_sys::XI_DOWNSAMPLING_VALUE::XI_DWN_1x1;
     use xiapi_sys::XI_DOWNSAMPLING_TYPE::*;
-    use image::open;
+    //use xiapi_sys::XI_TEST_PATTERN_GENERATOR::*;
+    use xiapi_sys::XI_TEST_PATTERN::*;
 
     use crate::open_device;
 
@@ -54,7 +55,7 @@ mod tests {
     #[serial]
     fn default_gains() -> Result<(), XI_RETURN> {
         let mut cam = open_device(None)?;
-        cam.set_gain_selector(XI_GAIN_SELECTOR_ALL);
+        cam.set_gain_selector(XI_GAIN_SELECTOR_ALL)?;
         let gain_all = cam.gain()?;
         assert_eq!(gain_all, 0.0);
         Ok(())
@@ -92,4 +93,14 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    #[serial]
+    fn test_pattern_defaults() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        //let generator = cam.test_pattern_generator_selector()?;
+        //assert_eq!(generator, XI_TESTPAT_GEN_FPGA);
+        let pattern = cam.test_pattern()?;
+        assert_eq!(pattern, XI_TESTPAT_OFF);
+        Ok(())
+    }
 }
