@@ -15,9 +15,11 @@ pub use self::camera::open_device_manual_bandwidth;
 pub use self::camera::AcquisitionBuffer;
 pub use self::camera::Camera;
 pub use self::image::Image;
+pub use self::roi::Roi;
 
 mod camera;
 mod image;
+mod roi;
 
 #[cfg(test)]
 mod tests {
@@ -102,6 +104,15 @@ mod tests {
         //assert_eq!(generator, XI_TESTPAT_GEN_FPGA);
         let pattern = cam.test_pattern()?;
         assert_eq!(pattern, XI_TESTPAT_OFF);
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn get_increment() -> Result<(), XI_RETURN> {
+        let mut cam = open_device(None)?;
+        let increment = cam.width_increment()?;
+        println!("{}", increment);
         Ok(())
     }
 }
