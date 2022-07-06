@@ -111,7 +111,7 @@ mod tests {
     #[test]
     #[serial]
     fn get_increment() -> Result<(), XI_RETURN> {
-        let mut cam = open_device(None)?;
+        let cam = open_device(None)?;
         let increment = cam.width_increment()?;
         println!("{}", increment);
         Ok(())

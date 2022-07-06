@@ -42,6 +42,7 @@ macro_rules! param {
                 unsafe {self.param([<XI_PRM_ $prm:upper>]) }
              }
             // Generate a getter for the increment
+            #[doc = "Get the increment for the `" $prm "` parameter. See also [Self::" $prm "()]"]
             pub fn [<$prm _increment>](& self) -> Result<$type, XI_RETURN>{
                 unsafe {self.param_increment([<XI_PRM_ $prm:upper>])}
             }
