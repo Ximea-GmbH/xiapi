@@ -31,6 +31,7 @@ mod tests {
     use xiapi_sys::XI_DOWNSAMPLING_TYPE::*;
     //use xiapi_sys::XI_TEST_PATTERN_GENERATOR::*;
     use xiapi_sys::XI_TEST_PATTERN::*;
+    use crate::Roi;
 
     use crate::open_device;
 
@@ -113,6 +114,25 @@ mod tests {
         let mut cam = open_device(None)?;
         let increment = cam.width_increment()?;
         println!("{}", increment);
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn set_get_roi() -> Result<(), XI_RETURN> {
+        let mut cam = open_device(None)?;
+        let roi = Roi{
+            offset_x: cam.offset_x_increment()?,
+            offset_y: cam.offset_y_increment()?,
+            width: cam.width_increment()?,
+            height: cam.height_increment()?,
+        };
+        let roi_actual = cam.set_roi(&roi)?;
+        assert_eq!(roi.width, roi_actual.width);
+
+        let get_roi = cam.roi()?;
+        assert_eq!(roi.width, get_roi.width);
+
         Ok(())
     }
 }

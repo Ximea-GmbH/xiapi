@@ -342,6 +342,16 @@ impl Camera {
         Ok(actual_roi)
     }
 
+    /// Returns the current roi from this camera
+    pub fn roi(&self) -> Result<Roi, XI_RETURN>{
+        let width = self.width()?;
+        let height = self.height()?;
+        let offset_x = self.offset_x()?;
+        let offset_y = self.offset_y()?;
+        let result = Roi {offset_x, offset_y, width, height};
+        Ok(result)
+    }
+
 
     param! {
         /// Current exposure time in microseconds.
