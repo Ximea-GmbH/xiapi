@@ -164,13 +164,13 @@ pub fn open_device_manual_bandwidth(dev_id: Option<u32>, bandwidth: i32) -> Resu
             Ok(c) => c,
             Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
         };
-        match i32::set_param(std::ptr::null_mut(), bandwidth_param_c.as_ptr(), XI_SWITCH::XI_OFF as i32) as u32{
+        match i32::set_param(std::ptr::null_mut(), bandwidth_param_c.as_ptr(), XI_SWITCH::XI_OFF as i32) as XI_RET::Type{
             XI_RET::XI_OK => {}
             err => return Err(err as i32)
         };
 
         let cam = open_device(dev_id);
-        match i32::set_param(std::ptr::null_mut(), bandwidth_param_c.as_ptr(), XI_SWITCH::XI_ON as i32) as u32{
+        match i32::set_param(std::ptr::null_mut(), bandwidth_param_c.as_ptr(), XI_SWITCH::XI_ON as i32) as XI_RET::Type{
             XI_RET::XI_OK => {}
             _ => panic!("Could not enable auto bandwidth calculation!")
         }
