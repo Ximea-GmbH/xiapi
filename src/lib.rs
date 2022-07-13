@@ -16,6 +16,7 @@ pub use self::camera::AcquisitionBuffer;
 pub use self::camera::Camera;
 pub use self::image::Image;
 pub use self::roi::Roi;
+pub use xiapi_sys::*;
 
 mod camera;
 mod image;
@@ -23,17 +24,16 @@ mod roi;
 
 #[cfg(test)]
 mod tests {
+    use crate::*;
     use approx::assert_abs_diff_eq;
     use serial_test::serial;
-    use xiapi_sys::XI_RETURN;
-    use xiapi_sys::XI_GAIN_SELECTOR_TYPE::XI_GAIN_SELECTOR_ALL;
-    use xiapi_sys::XI_DOWNSAMPLING_VALUE::XI_DWN_1x1;
-    use xiapi_sys::XI_DOWNSAMPLING_TYPE::*;
+    use XI_GAIN_SELECTOR_TYPE::XI_GAIN_SELECTOR_ALL;
+    use XI_DOWNSAMPLING_VALUE::XI_DWN_1x1;
+    use XI_DOWNSAMPLING_TYPE::*;
     //use xiapi_sys::XI_TEST_PATTERN_GENERATOR::*;
-    use xiapi_sys::XI_TEST_PATTERN::*;
-    use xiapi_sys::XI_RET;
-    use xiapi_sys::XI_LED_SELECTOR::*;
-    use xiapi_sys::XI_LED_MODE::*;
+    use XI_TEST_PATTERN::*;
+    use XI_LED_SELECTOR::*;
+    use XI_LED_MODE::*;
     use crate::Roi;
 
     use crate::open_device;
