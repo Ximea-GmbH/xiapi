@@ -41,11 +41,25 @@ macro_rules! param {
             pub fn $prm(&self) -> Result<$type, XI_RETURN>{
                 unsafe {self.param([<XI_PRM_ $prm:upper>]) }
              }
+
             // Generate a getter for the increment
             #[doc = "Get the increment for the `" $prm "` parameter. See also [Self::" $prm "()]"]
             pub fn [<$prm _increment>](& self) -> Result<$type, XI_RETURN>{
                 unsafe {self.param_increment([<XI_PRM_ $prm:upper>])}
             }
+
+            // Generate getter for the minimum
+            #[doc = "Get the minimum for the `" $prm "` parameter. See also [Self::" $prm "()]"]
+            pub fn [<$prm _minimum>](& self) -> Result<$type, XI_RETURN>{
+                unsafe {self.param_min([<XI_PRM_ $prm:upper>])}
+            }
+
+            // Generate getter for the maximum
+            #[doc = "Get the maximum for the `" $prm "` parameter. See also [Self::" $prm "()]"]
+            pub fn [<$prm _maximum>](& self) -> Result<$type, XI_RETURN>{
+                unsafe {self.param_max([<XI_PRM_ $prm:upper>])}
+            }
+
             // Generate a setter
             // TODO: Customizable documentation for setters
             #[doc = "Set the `" $prm "` parameter. See also [Self::" $prm "()]"]
@@ -290,10 +304,22 @@ impl Camera {
         }
     }
 
-    unsafe fn param_increment<T: ParamType>(&self, param: &[u8]) -> Result<T, XI_RETURN> {
+    unsafe fn param_increment<T: ParamType>(&self, param: &'static[u8]) -> Result<T, XI_RETURN> {
+        self.param_info(param, XI_PRM_INFO_INCREMENT)
+    }
+
+    unsafe fn param_min<T: ParamType>(&self, param: &'static[u8]) -> Result<T,XI_RETURN> {
+        self.param_info(param, XI_PRM_INFO_MIN)
+    }
+
+    unsafe fn param_max<T: ParamType>(&self, param: &'static[u8]) -> Result<T,XI_RETURN> {
+        self.param_info(param, XI_PRM_INFO_MAX)
+    }
+
+    unsafe fn param_info<T: ParamType>(&self, param: &'static[u8], info_modifier: &'static[u8]) -> Result<T, XI_RETURN> {
         // Strings need to be sanitized and then concatenated
         let param_utf8 = from_utf8(param).or(Err(XI_RET::XI_INVALID_ARG as i32))?;
-        let modifier_utf8 = from_utf8(XI_PRM_INFO_INCREMENT).expect("UTF8 error on API constant -> Unreachable");
+        let modifier_utf8 = from_utf8(info_modifier).expect("UTF8 error on API constant -> Unreachable");
         // We have to specifically trim the null character from the first string
         let modified_param = format!("{}{}", param_utf8.trim_matches(char::from(0)) , modifier_utf8);
         self.param(modified_param.as_bytes())
@@ -398,6 +424,40 @@ impl Camera {
 
         /// Camera acquisition data-rate limit on transport layer in Megabits per second.
         mut limit_bandwidth: i32;
+
+        /// Defines the source of trigger
+        mut trg_source: XI_TRG_SOURCE::Type;
+
+        /// Selects the type of trigger
+        mut trg_selector: XI_TRG_SELECTOR::Type;
+
+        /// Selects the type of trigger overlap
+        mut trg_overlap: XI_TRG_OVERLAP::Type;
+
+        /// Sets the number of frames to be triggered for each trigger signal.
+        /// This setting is only valid if the trigger selector is set to XI_TRG_SEL_FRAME_BURST_START
+        mut acq_frame_burst_count: u32;
+
+        /// Selects a GPI
+        mut gpi_selector: XI_GPI_SELECTOR::Type;
+
+        /// Defines functionality for the selected GPI
+        mut gpi_mode: XI_GPI_MODE::Type;
+
+        /// Selects a GPO
+        mut gpo_selector: XI_GPO_SELECTOR::Type;
+
+        /// Defines functionality for the selected GPO
+        mut gpo_mode: XI_GPO_MODE::Type;
+
+        /// Selects a LED
+        mut led_selector: XI_LED_SELECTOR::Type;
+
+        /// Defines functionality for the selected LED
+        mut led_mode: XI_LED_MODE::Type;
+
+        /// Enable or disable signal debounce for selected GPI
+        mut debounce_en: XI_SWITCH::Type;
     }
 }
 
@@ -438,5 +498,25 @@ impl AcquisitionBuffer {
             xiapi_sys::xiGetImage(self.camera.device_handle, timeout, &mut image.xi_img);
         }
         Ok(image)
+    }
+
+    /// Send a software trigger signal to the camera.
+    ///
+    /// Trigger source has to be set to XI_TRG_SOFTWARE for this to take effect
+    ///
+    /// # Examples
+    /// ```
+    /// # #[serial_test::file_serial]
+    /// # fn main() -> Result<(), xiapi_sys::XI_RETURN> {
+    ///     let mut cam = xiapi::open_device(None)?;
+    ///     cam.set_trg_source(xiapi_sys::XI_TRG_SOURCE::XI_TRG_SOFTWARE)?;
+    ///     let mut acq_buffer = cam.start_acquisition()?;
+    ///     acq_buffer.software_trigger()?;
+    ///     let img = acq_buffer.next_image::<u8>(None)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn software_trigger(&mut self) -> Result<(), XI_RETURN> {
+        unsafe {self.camera.set_param(XI_PRM_TRG_SOFTWARE, XI_SWITCH::XI_ON) }
     }
 }

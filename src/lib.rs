@@ -31,6 +31,9 @@ mod tests {
     use xiapi_sys::XI_DOWNSAMPLING_TYPE::*;
     //use xiapi_sys::XI_TEST_PATTERN_GENERATOR::*;
     use xiapi_sys::XI_TEST_PATTERN::*;
+    use xiapi_sys::XI_RET;
+    use xiapi_sys::XI_LED_SELECTOR::*;
+    use xiapi_sys::XI_LED_MODE::*;
     use crate::Roi;
 
     use crate::open_device;
@@ -48,10 +51,18 @@ mod tests {
     #[serial]
     fn set_get_exposure() -> Result<(), XI_RETURN> {
         let mut cam = open_device(None)?;
-        cam.set_exposure_burst_count(1)?;
+        match cam.set_exposure_burst_count(1){
+            Err(x) => {
+                match x as XI_RET::Type {
+                    XI_RET::XI_NOT_IMPLEMENTED => {} // Ignore error for cameras that do not have this feature
+                    _ => {return Err(x)}
+                }
+            }
+            _ => {}
+        }
         cam.set_exposure(12_345.0)?;
         let exp = cam.exposure()?;
-        assert_abs_diff_eq!(exp, 12_345.0, epsilon = 10.0);
+        assert_abs_diff_eq!(exp, 12_345.0, epsilon = 20.0);
         Ok(())
     }
 
@@ -73,9 +84,16 @@ mod tests {
         assert_eq!(default_type, XI_BINNING);
         let default_value = cam.downsampling()?;
         assert_eq!(default_value, XI_DWN_1x1);
-        cam.set_downsampling_type(XI_SKIPPING)?;
-        let skipping_value = cam.downsampling()?;
-        assert_eq!(skipping_value, XI_DWN_1x1);
+        match cam.set_downsampling_type(XI_SKIPPING) {
+            Err(x) => match x as XI_RET::Type {
+                XI_RET::XI_INVALID_ARG => {} // This happens when a camera does not support skipping
+                _ => {return Err(x)}
+            }
+            Ok(()) => {
+                let skipping_value = cam.downsampling()?;
+                assert_eq!(skipping_value, XI_DWN_1x1);
+            }
+        }
         Ok(())
     }
 
@@ -122,10 +140,10 @@ mod tests {
     fn set_get_roi() -> Result<(), XI_RETURN> {
         let mut cam = open_device(None)?;
         let roi = Roi{
-            offset_x: cam.offset_x_increment()?,
-            offset_y: cam.offset_y_increment()?,
-            width: cam.width_increment()?,
-            height: cam.height_increment()?,
+            offset_x: cam.offset_x_minimum()?+ cam.offset_x_increment()?,
+            offset_y: cam.offset_y_minimum()?+ cam.offset_y_increment()?,
+            width: cam.width_minimum()? + cam.width_increment()?,
+            height: cam.height_minimum()? + cam.height_increment()?,
         };
         let roi_actual = cam.set_roi(&roi)?;
         assert_eq!(roi.width, roi_actual.width);
@@ -133,6 +151,15 @@ mod tests {
         let get_roi = cam.roi()?;
         assert_eq!(roi.width, get_roi.width);
 
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn blink_leds() -> Result<(), XI_RETURN> {
+        let mut cam = open_device(None)?;
+        cam.set_led_selector(XI_LED_SEL1)?;
+        cam.set_led_mode(XI_LED_BLINK)?;
         Ok(())
     }
 }
