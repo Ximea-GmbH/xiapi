@@ -162,4 +162,16 @@ mod tests {
         cam.set_led_mode(XI_LED_BLINK)?;
         Ok(())
     }
+
+    #[test]
+    #[serial]
+    fn image_user_data() -> Result<(), XI_RETURN> {
+        let mut cam = open_device(None)?;
+        cam.set_image_user_data(42u32)?;
+        let acq_buffer = cam.start_acquisition()?;
+        let image = acq_buffer.next_image::<u8>(None)?;
+        assert_eq!(image.image_user_data(), 42u32);
+        Ok(())
+
+    }
 }

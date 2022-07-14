@@ -55,6 +55,67 @@ impl<'a, T> Image<'a, T> {
         self.xi_img.height
     }
 
+    /// Format of image data
+    pub fn format(&self) -> xiapi_sys::XI_IMG_FORMAT::Type {
+        self.xi_img.frm
+    }
+
+    /// Frame number
+    pub fn nframe(&self) -> u32 {
+        self.xi_img.nframe
+    }
+
+    /// Image black level
+    pub fn black_level(&self) -> u32 {
+        self.xi_img.black_level
+    }
+
+    /// Number of extra bytes provided at the end of each line for alignment
+    pub fn padding_x(&self) -> u32 {
+        self.xi_img.padding_x
+    }
+
+    /// Horizontal offset from the origin of the sensor to the first pixel in this image
+    pub fn absolute_offset_x(&self) -> u32 {
+        self.xi_img.AbsoluteOffsetX
+    }
+
+    /// Vertical offset from the origin of the sensor to the first line in this image
+    pub fn absolute_offset_y(&self) -> u32 {
+        self.xi_img.AbsoluteOffsetY
+    }
+
+    /// Current format of the pixels on transport layer
+    pub fn transport_format(&self) -> xiapi_sys::XI_IMG_FORMAT::Type{
+        self.xi_img.transport_frm
+    }
+
+    /// Horizontal downsampling
+    pub fn downsampling_x(&self) -> u32 {
+        self.xi_img.DownsamplingX
+    }
+
+    /// Vertical downsampling
+    pub fn downsampling_y(&self) -> u32 {
+        self.xi_img.DownsamplingY
+    }
+
+    /// Exposure time for this image in us
+    pub fn exposure_time_us(&self) -> u32 {
+        self.xi_img.exposure_time_us
+    }
+
+    /// Aquisition Frame Number. Reset only on acquisition start.
+    pub fn acq_nframe(&self) -> u32{
+        self.xi_img.acq_nframe
+    }
+
+    /// Image user data which can be set using [Camera::set_image_user_data]
+    pub fn image_user_data(&self) -> u32 {
+       self.xi_img.image_user_data
+    }
+
+
     /// Get the raw image data as a slice
     pub fn data(&'a self) -> &'a [T] {
         unsafe {

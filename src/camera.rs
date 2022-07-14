@@ -458,6 +458,9 @@ impl Camera {
 
         /// Enable or disable signal debounce for selected GPI
         mut debounce_en: XI_SWITCH::Type;
+
+        /// Set user data to be stored in the image header
+        mut image_user_data: u32;
     }
 }
 
