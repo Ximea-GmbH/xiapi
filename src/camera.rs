@@ -200,6 +200,36 @@ pub fn open_device_manual_bandwidth(dev_id: Option<u32>, bandwidth: i32) -> Resu
 
 }
 
+/// Returns the number of available cameras.
+///
+/// # Examples
+///
+/// ```
+/// # #[serial_test::file_serial]
+/// # fn main() -> Result<(), xiapi::XI_RETURN>{
+///     let number_devices = xiapi::number_devices()?;
+///     let mut cameras = Vec::with_capacity(number_devices as usize);
+///     for i in 0..number_devices {
+///         cameras.push(xiapi::open_device(Some(i))?);
+///     }
+/// # Ok(())
+/// # }
+pub fn number_devices() -> Result<u32, XI_RETURN> {
+    unsafe {
+        let mut value = 0u32;
+        let res = xiapi_sys::xiGetNumberDevices(&mut value);
+        match res as XI_RET::Type{
+            XI_RET::XI_OK=> {
+                Ok(value)
+            }
+            _ => {
+                Err(res)
+            }
+        }
+    }
+
+}
+
 impl Drop for Camera {
     fn drop(&mut self) {
         unsafe {

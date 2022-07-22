@@ -12,6 +12,7 @@
 
 pub use self::camera::open_device;
 pub use self::camera::open_device_manual_bandwidth;
+pub use self::camera::number_devices;
 pub use self::camera::AcquisitionBuffer;
 pub use self::camera::Camera;
 pub use self::image::Image;
@@ -55,6 +56,7 @@ mod tests {
             Err(x) => {
                 match x as XI_RET::Type {
                     XI_RET::XI_NOT_IMPLEMENTED => {} // Ignore error for cameras that do not have this feature
+                    XI_RET::XI_NOT_SUPPORTED => {}
                     _ => {return Err(x)}
                 }
             }
