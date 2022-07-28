@@ -25,6 +25,7 @@ mod roi;
 
 #[cfg(test)]
 mod tests {
+    use std::ptr::read_volatile;
     use crate::*;
     use approx::assert_abs_diff_eq;
     use serial_test::serial;
@@ -35,6 +36,7 @@ mod tests {
     use XI_TEST_PATTERN::*;
     use XI_LED_SELECTOR::*;
     use XI_LED_MODE::*;
+    use xiapi_sys::XI_IMG_FORMAT::XI_RAW16;
     use crate::Roi;
 
     use crate::open_device;
@@ -175,5 +177,21 @@ mod tests {
         assert_eq!(image.image_user_data(), 42u32);
         Ok(())
 
+    }
+
+    #[test]
+    #[serial]
+    fn iterate_over_image() -> Result<(), XI_RETURN> {
+        let mut cam = open_device(None)?;
+        cam.set_image_data_format(XI_RAW16)?;
+        let acq_buffer = cam.start_acquisition()?;
+        let image = acq_buffer.next_image::<u16>(None)?;
+        let data = image.data();
+        for pixel in data {
+            unsafe {
+                read_volatile(pixel);
+            }
+        }
+        Ok(())
     }
 }

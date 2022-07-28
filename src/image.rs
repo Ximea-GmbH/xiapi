@@ -119,7 +119,8 @@ impl<'a, T> Image<'a, T> {
     /// Get the raw image data as a slice
     pub fn data(&'a self) -> &'a [T] {
         unsafe {
-            from_raw_parts(self.xi_img.bp as *const T, self.xi_img.bp_size as usize)
+            let length = self.xi_img.bp_size as usize / size_of::<T>();
+            from_raw_parts(self.xi_img.bp as *const T, length)
         }
     }
 }
