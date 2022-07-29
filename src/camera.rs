@@ -516,6 +516,19 @@ impl Camera {
 
         /// Bit depth of the image returned by [Self::next_image()]
         mut image_data_bit_depth: XI_BIT_DEPTH::Type;
+
+        /// Enable column fpn correction in camera
+        mut column_fpn_correction: XI_SWITCH::Type;
+
+        /// Enable row fpn correction in camera
+        mut row_fpn_correction: XI_SWITCH::Type;
+
+        /// Enable column black offset correction
+        mut column_black_offset_correction: XI_SWITCH::Type;
+
+        /// Enable row black offset correction
+        mut row_black_offset_correction: XI_SWITCH::Type;
+
     }
 }
 
