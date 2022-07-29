@@ -491,6 +491,31 @@ impl Camera {
 
         /// Set user data to be stored in the image header
         mut image_user_data: u32;
+
+        /// Set the bit depth for the ADCs on the sensor
+        /// # Examples
+        /// ```
+        /// # #[serial_test::file_serial()]
+        /// # fn main() -> Result<(), xiapi::XI_RETURN>{
+        /// # use xiapi_sys::XI_IMG_FORMAT::XI_RAW16;
+        /// # use xiapi::XI_BIT_DEPTH::XI_BPP_12;
+        /// let mut cam = xiapi::open_device(None)?;
+        /// cam.set_image_data_format(XI_RAW16)?;
+        /// cam.set_sensor_data_bit_depth(XI_BPP_12)?;
+        /// cam.set_output_data_bit_depth(XI_BPP_12)?;
+        /// cam.set_image_data_bit_depth(XI_BPP_12)?;
+        /// # assert_eq!(cam.sensor_data_bit_depth()?, XI_BPP_12);
+        /// # assert_eq!(cam.output_data_bit_depth()?, XI_BPP_12);
+        /// # assert_eq!(cam.image_data_bit_depth()?, XI_BPP_12);
+        /// # Ok(())
+        /// }
+        mut sensor_data_bit_depth: XI_BIT_DEPTH::Type;
+
+        /// Set the bit depth send from the camera to the PC
+        mut output_data_bit_depth: XI_BIT_DEPTH::Type;
+
+        /// Bit depth of the image returned by [Self::next_image()]
+        mut image_data_bit_depth: XI_BIT_DEPTH::Type;
     }
 }
 
