@@ -10,6 +10,7 @@
 
 #![warn(missing_docs)]
 
+use std::ptr::null;
 pub use self::camera::open_device;
 pub use self::camera::open_device_manual_bandwidth;
 pub use self::camera::number_devices;
@@ -22,6 +23,19 @@ pub use xiapi_sys::*;
 mod camera;
 mod image;
 mod roi;
+
+
+/// Set the debug output level for the whole application
+pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN>{
+    unsafe {
+        use std::ffi::CString;
+        let debug_param_string = CString::new("debug_level").unwrap();
+        match xiSetParamInt(std::ptr::null_mut(), debug_param_string.as_ptr(), level as i32) {
+            XI_OK => Ok(()),
+            x => Err(x)
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
