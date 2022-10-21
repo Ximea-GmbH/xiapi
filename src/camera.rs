@@ -455,6 +455,9 @@ impl Camera {
         /// Camera acquisition data-rate limit on transport layer in Megabits per second.
         mut limit_bandwidth: i32;
 
+        /// Available interface bandwidth measured by automatic bandwidth measurement.
+        available_bandwidth: i32;
+
         /// Defines the source of trigger
         mut trg_source: XI_TRG_SOURCE::Type;
 

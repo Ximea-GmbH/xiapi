@@ -194,4 +194,14 @@ mod tests {
         }
         Ok(())
     }
+
+    #[test]
+    #[serial]
+    fn available_bandwidth() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        let bandwidth = cam.available_bandwidth()?;
+        assert!(bandwidth > 0);
+        Ok(())
+
+    }
 }
