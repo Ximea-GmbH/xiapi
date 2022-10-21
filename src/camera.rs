@@ -410,6 +410,16 @@ impl Camera {
     }
 
 
+    /// Convenience method to read counters from the camera with a single call
+    /// See also [Self.counter_selector] and [Self.counter_value]
+    pub fn counter(&mut self, counter_selector: XI_COUNTER_SELECTOR::Type) -> Result<i32, XI_RETURN>{
+        let prev_selector = self.counter_selector()?;
+        self.set_counter_selector(counter_selector)?;
+        let result = self.counter_value()?;
+        self.set_counter_selector(prev_selector)?;
+        Ok(result)
+    }
+
     param! {
         /// Current exposure time in microseconds.
         mut exposure: f32;
@@ -531,6 +541,12 @@ impl Camera {
 
         /// Enable row black offset correction
         mut row_black_offset_correction: XI_SWITCH::Type;
+
+        /// Select the frame counter to read
+        mut counter_selector: XI_COUNTER_SELECTOR::Type;
+
+        /// Read the value of a frame counter selected with [Self::set_counter_selector]
+        counter_value: i32;
 
     }
 }
