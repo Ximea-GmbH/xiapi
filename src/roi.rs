@@ -1,6 +1,5 @@
 /// Roi represents a region of interest.
 pub struct Roi {
-
     /// Offset from the left in the horizontal direction
     pub offset_x: u32,
 
@@ -11,5 +10,5 @@ pub struct Roi {
     pub width: u32,
 
     /// Image height
-    pub height: u32
+    pub height: u32,
 }

@@ -10,10 +10,9 @@
 
 #![warn(missing_docs)]
 
-use std::ptr::null;
+pub use self::camera::number_devices;
 pub use self::camera::open_device;
 pub use self::camera::open_device_manual_bandwidth;
-pub use self::camera::number_devices;
 pub use self::camera::AcquisitionBuffer;
 pub use self::camera::Camera;
 pub use self::image::Image;
@@ -24,34 +23,37 @@ mod camera;
 mod image;
 mod roi;
 
-
 /// Set the debug output level for the whole application
-pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN>{
+pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN> {
     unsafe {
         use std::ffi::CString;
         let debug_param_string = CString::new("debug_level").unwrap();
-        match xiSetParamInt(std::ptr::null_mut(), debug_param_string.as_ptr(), level as i32) {
+        match xiSetParamInt(
+            std::ptr::null_mut(),
+            debug_param_string.as_ptr(),
+            level as i32,
+        ) {
             XI_OK => Ok(()),
-            x => Err(x)
+            x => Err(x),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::ptr::read_volatile;
     use crate::*;
     use approx::assert_abs_diff_eq;
     use serial_test::serial;
-    use XI_GAIN_SELECTOR_TYPE::XI_GAIN_SELECTOR_ALL;
-    use XI_DOWNSAMPLING_VALUE::XI_DWN_1x1;
+    use std::ptr::read_volatile;
     use XI_DOWNSAMPLING_TYPE::*;
+    use XI_DOWNSAMPLING_VALUE::XI_DWN_1x1;
+    use XI_GAIN_SELECTOR_TYPE::XI_GAIN_SELECTOR_ALL;
     //use xiapi_sys::XI_TEST_PATTERN_GENERATOR::*;
-    use XI_TEST_PATTERN::*;
-    use XI_LED_SELECTOR::*;
-    use XI_LED_MODE::*;
-    use xiapi_sys::XI_IMG_FORMAT::XI_RAW16;
     use crate::Roi;
+    use xiapi_sys::XI_IMG_FORMAT::XI_RAW16;
+    use XI_LED_MODE::*;
+    use XI_LED_SELECTOR::*;
+    use XI_TEST_PATTERN::*;
 
     use crate::open_device;
 
@@ -68,12 +70,12 @@ mod tests {
     #[serial]
     fn set_get_exposure() -> Result<(), XI_RETURN> {
         let mut cam = open_device(None)?;
-        match cam.set_exposure_burst_count(1){
+        match cam.set_exposure_burst_count(1) {
             Err(x) => {
                 match x as XI_RET::Type {
                     XI_RET::XI_NOT_IMPLEMENTED => {} // Ignore error for cameras that do not have this feature
                     XI_RET::XI_NOT_SUPPORTED => {}
-                    _ => {return Err(x)}
+                    _ => return Err(x),
                 }
             }
             _ => {}
@@ -105,8 +107,8 @@ mod tests {
         match cam.set_downsampling_type(XI_SKIPPING) {
             Err(x) => match x as XI_RET::Type {
                 XI_RET::XI_INVALID_ARG => {} // This happens when a camera does not support skipping
-                _ => {return Err(x)}
-            }
+                _ => return Err(x),
+            },
             Ok(()) => {
                 let skipping_value = cam.downsampling()?;
                 assert_eq!(skipping_value, XI_DWN_1x1);
@@ -157,9 +159,9 @@ mod tests {
     #[serial]
     fn set_get_roi() -> Result<(), XI_RETURN> {
         let mut cam = open_device(None)?;
-        let roi = Roi{
-            offset_x: cam.offset_x_minimum()?+ cam.offset_x_increment()?,
-            offset_y: cam.offset_y_minimum()?+ cam.offset_y_increment()?,
+        let roi = Roi {
+            offset_x: cam.offset_x_minimum()? + cam.offset_x_increment()?,
+            offset_y: cam.offset_y_minimum()? + cam.offset_y_increment()?,
             width: cam.width_minimum()? + cam.width_increment()?,
             height: cam.height_minimum()? + cam.height_increment()?,
         };
@@ -190,7 +192,6 @@ mod tests {
         let image = acq_buffer.next_image::<u8>(None)?;
         assert_eq!(image.image_user_data(), 42u32);
         Ok(())
-
     }
 
     #[test]
@@ -216,14 +217,14 @@ mod tests {
         let bandwidth = cam.available_bandwidth()?;
         assert!(bandwidth > 0);
         Ok(())
-
     }
 
     #[test]
     #[serial]
     fn read_counters() -> Result<(), XI_RETURN> {
         let mut cam = open_device(None)?;
-        let skipped_frames = cam.counter(XI_COUNTER_SELECTOR::XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES)?;
+        let skipped_frames =
+            cam.counter(XI_COUNTER_SELECTOR::XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES)?;
         assert_eq!(skipped_frames, 0);
         Ok(())
     }

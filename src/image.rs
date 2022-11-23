@@ -16,7 +16,6 @@ pub struct Image<'a, T> {
     pub(crate) pix_type: std::marker::PhantomData<&'a T>,
 }
 
-
 impl<'a, T> Image<'a, T> {
     /// Get a Pixel from the image.
     ///
@@ -86,7 +85,7 @@ impl<'a, T> Image<'a, T> {
     }
 
     /// Current format of the pixels on transport layer
-    pub fn transport_format(&self) -> xiapi_sys::XI_IMG_FORMAT::Type{
+    pub fn transport_format(&self) -> xiapi_sys::XI_IMG_FORMAT::Type {
         self.xi_img.transport_frm
     }
 
@@ -106,15 +105,14 @@ impl<'a, T> Image<'a, T> {
     }
 
     /// Aquisition Frame Number. Reset only on acquisition start.
-    pub fn acq_nframe(&self) -> u32{
+    pub fn acq_nframe(&self) -> u32 {
         self.xi_img.acq_nframe
     }
 
     /// Image user data which can be set using [Camera::set_image_user_data]
     pub fn image_user_data(&self) -> u32 {
-       self.xi_img.image_user_data
+        self.xi_img.image_user_data
     }
-
 
     /// Get the raw image data as a slice
     pub fn data(&'a self) -> &'a [T] {
@@ -148,8 +146,7 @@ where
         let data = Vec::from(image.data());
         match Self::from_raw(image.width(), image.height(), data) {
             None => panic!("Failed to create image from raw pointer"),
-            Some(buffer) => {buffer}
+            Some(buffer) => buffer,
         }
     }
 }
-
