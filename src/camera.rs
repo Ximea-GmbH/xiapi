@@ -3,8 +3,8 @@
  */
 use std::ffi::CStr;
 use std::marker::PhantomData;
-use std::mem::MaybeUninit;
 use std::mem::size_of;
+use std::mem::MaybeUninit;
 use std::os::raw::c_char;
 use std::str::from_utf8;
 
@@ -172,32 +172,44 @@ pub fn open_device(dev_id: Option<u32>) -> Result<Camera, XI_RETURN> {
 /// #   Ok(())
 /// # }
 /// ```
-pub fn open_device_manual_bandwidth(dev_id: Option<u32>, bandwidth: i32) -> Result<Camera, XI_RETURN>{
+pub fn open_device_manual_bandwidth(
+    dev_id: Option<u32>,
+    bandwidth: i32,
+) -> Result<Camera, XI_RETURN> {
     let cam = unsafe {
         let bandwidth_param_c = match CStr::from_bytes_with_nul(XI_PRM_AUTO_BANDWIDTH_CALCULATION) {
             Ok(c) => c,
             Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
         };
-        match i32::set_param(std::ptr::null_mut(), bandwidth_param_c.as_ptr(), XI_SWITCH::XI_OFF as i32) as XI_RET::Type{
+        match i32::set_param(
+            std::ptr::null_mut(),
+            bandwidth_param_c.as_ptr(),
+            XI_SWITCH::XI_OFF as i32,
+        ) as XI_RET::Type
+        {
             XI_RET::XI_OK => {}
-            err => return Err(err as i32)
+            err => return Err(err as i32),
         };
 
         let cam = open_device(dev_id);
-        match i32::set_param(std::ptr::null_mut(), bandwidth_param_c.as_ptr(), XI_SWITCH::XI_ON as i32) as XI_RET::Type{
+        match i32::set_param(
+            std::ptr::null_mut(),
+            bandwidth_param_c.as_ptr(),
+            XI_SWITCH::XI_ON as i32,
+        ) as XI_RET::Type
+        {
             XI_RET::XI_OK => {}
-            _ => panic!("Could not enable auto bandwidth calculation!")
+            _ => panic!("Could not enable auto bandwidth calculation!"),
         }
         cam
     };
-    match cam  {
+    match cam {
         Ok(mut cam) => {
             cam.set_limit_bandwidth(bandwidth)?;
             Ok(cam)
         }
-        Err(err) => Err(err)
+        Err(err) => Err(err),
     }
-
 }
 
 /// Returns the number of available cameras.
@@ -218,16 +230,11 @@ pub fn number_devices() -> Result<u32, XI_RETURN> {
     unsafe {
         let mut value = 0u32;
         let res = xiapi_sys::xiGetNumberDevices(&mut value);
-        match res as XI_RET::Type{
-            XI_RET::XI_OK=> {
-                Ok(value)
-            }
-            _ => {
-                Err(res)
-            }
+        match res as XI_RET::Type {
+            XI_RET::XI_OK => Ok(value),
+            _ => Err(res),
         }
     }
-
 }
 
 impl Drop for Camera {
@@ -334,24 +341,33 @@ impl Camera {
         }
     }
 
-    unsafe fn param_increment<T: ParamType>(&self, param: &'static[u8]) -> Result<T, XI_RETURN> {
+    unsafe fn param_increment<T: ParamType>(&self, param: &'static [u8]) -> Result<T, XI_RETURN> {
         self.param_info(param, XI_PRM_INFO_INCREMENT)
     }
 
-    unsafe fn param_min<T: ParamType>(&self, param: &'static[u8]) -> Result<T,XI_RETURN> {
+    unsafe fn param_min<T: ParamType>(&self, param: &'static [u8]) -> Result<T, XI_RETURN> {
         self.param_info(param, XI_PRM_INFO_MIN)
     }
 
-    unsafe fn param_max<T: ParamType>(&self, param: &'static[u8]) -> Result<T,XI_RETURN> {
+    unsafe fn param_max<T: ParamType>(&self, param: &'static [u8]) -> Result<T, XI_RETURN> {
         self.param_info(param, XI_PRM_INFO_MAX)
     }
 
-    unsafe fn param_info<T: ParamType>(&self, param: &'static[u8], info_modifier: &'static[u8]) -> Result<T, XI_RETURN> {
+    unsafe fn param_info<T: ParamType>(
+        &self,
+        param: &'static [u8],
+        info_modifier: &'static [u8],
+    ) -> Result<T, XI_RETURN> {
         // Strings need to be sanitized and then concatenated
         let param_utf8 = from_utf8(param).or(Err(XI_RET::XI_INVALID_ARG as i32))?;
-        let modifier_utf8 = from_utf8(info_modifier).expect("UTF8 error on API constant -> Unreachable");
+        let modifier_utf8 =
+            from_utf8(info_modifier).expect("UTF8 error on API constant -> Unreachable");
         // We have to specifically trim the null character from the first string
-        let modified_param = format!("{}{}", param_utf8.trim_matches(char::from(0)) , modifier_utf8);
+        let modified_param = format!(
+            "{}{}",
+            param_utf8.trim_matches(char::from(0)),
+            modifier_utf8
+        );
         self.param(modified_param.as_bytes())
     }
 
@@ -375,7 +391,7 @@ impl Camera {
     /// # Ok(())
     /// # }
     ///
-    pub fn set_roi(&mut self, roi:&Roi) -> Result<Roi, XI_RETURN>{
+    pub fn set_roi(&mut self, roi: &Roi) -> Result<Roi, XI_RETURN> {
         self.set_offset_x(0)?;
         self.set_offset_y(0)?;
 
@@ -395,24 +411,36 @@ impl Camera {
         let offset_y = roi.offset_y - (roi.offset_y % offset_y_inc);
         self.set_offset_y(offset_y)?;
 
-        let actual_roi = Roi {offset_x, offset_y, width, height};
+        let actual_roi = Roi {
+            offset_x,
+            offset_y,
+            width,
+            height,
+        };
         Ok(actual_roi)
     }
 
     /// Returns the current roi from this camera
-    pub fn roi(&self) -> Result<Roi, XI_RETURN>{
+    pub fn roi(&self) -> Result<Roi, XI_RETURN> {
         let width = self.width()?;
         let height = self.height()?;
         let offset_x = self.offset_x()?;
         let offset_y = self.offset_y()?;
-        let result = Roi {offset_x, offset_y, width, height};
+        let result = Roi {
+            offset_x,
+            offset_y,
+            width,
+            height,
+        };
         Ok(result)
     }
 
-
     /// Convenience method to read counters from the camera with a single call
     /// See also [Self.counter_selector] and [Self.counter_value]
-    pub fn counter(&mut self, counter_selector: XI_COUNTER_SELECTOR::Type) -> Result<i32, XI_RETURN>{
+    pub fn counter(
+        &mut self,
+        counter_selector: XI_COUNTER_SELECTOR::Type,
+    ) -> Result<i32, XI_RETURN> {
         let prev_selector = self.counter_selector()?;
         self.set_counter_selector(counter_selector)?;
         let result = self.counter_value()?;
@@ -548,6 +576,12 @@ impl Camera {
         /// Read the value of a frame counter selected with [Self::set_counter_selector]
         counter_value: i32;
 
+        /// Select a sensor specific feature
+        mut sensor_feature_selector: XI_SENSOR_FEATURE_SELECTOR::Type;
+
+        /// Set a value for the feature selected with [Self::set_sensor_feature_selector]
+        mut sensor_feature_value: i32;
+
     }
 }
 
@@ -607,6 +641,6 @@ impl AcquisitionBuffer {
     /// # }
     /// ```
     pub fn software_trigger(&mut self) -> Result<(), XI_RETURN> {
-        unsafe {self.camera.set_param(XI_PRM_TRG_SOFTWARE, XI_SWITCH::XI_ON) }
+        unsafe { self.camera.set_param(XI_PRM_TRG_SOFTWARE, XI_SWITCH::XI_ON) }
     }
 }
