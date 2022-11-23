@@ -33,7 +33,7 @@ pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN> {
             debug_param_string.as_ptr(),
             level as i32,
         ) {
-            XI_OK => Ok(()),
+            XI_RET::XI_OK as XI_RETURN => Ok(()),
             x => Err(x),
         }
     }
