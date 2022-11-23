@@ -32,9 +32,9 @@ pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN> {
             std::ptr::null_mut(),
             debug_param_string.as_ptr(),
             level as i32,
-        ) {
-            XI_OK => Ok(()),
-            x => Err(x),
+        ) as XI_RET::Type {
+            XI_RET::XI_OK => Ok(()),
+            x => Err(x as XI_RETURN),
         }
     }
 }
