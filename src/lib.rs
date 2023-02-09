@@ -32,7 +32,8 @@ pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN> {
             std::ptr::null_mut(),
             debug_param_string.as_ptr(),
             level as i32,
-        ) as XI_RET::Type {
+        ) as XI_RET::Type
+        {
             XI_RET::XI_OK => Ok(()),
             x => Err(x as XI_RETURN),
         }
@@ -41,6 +42,7 @@ pub fn set_debug_level(level: XI_DEBUG_LEVEL::Type) -> Result<(), XI_RETURN> {
 
 #[cfg(test)]
 mod tests {
+    use std::os::raw::c_char;
     use crate::*;
     use approx::assert_abs_diff_eq;
     use serial_test::serial;
@@ -227,5 +229,21 @@ mod tests {
             cam.counter(XI_COUNTER_SELECTOR::XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES)?;
         assert_eq!(skipped_frames, 0);
         Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn raw_handle_access() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        let exposure_low = unsafe {
+            let handle = *cam;
+            let mut value = 0.0f32;
+            xiapi_sys::xiGetParamFloat(handle,  XI_PRM_EXPOSURE.as_ptr() as *const c_char, &mut value);
+            value
+        };
+        let exposure_high = cam.exposure()?;
+        assert_eq!(exposure_high, exposure_low);
+        Ok(())
+
     }
 }

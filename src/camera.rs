@@ -5,6 +5,7 @@ use std::ffi::CStr;
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::mem::MaybeUninit;
+use std::ops::Deref;
 use std::os::raw::c_char;
 use std::str::from_utf8;
 
@@ -582,6 +583,19 @@ impl Camera {
         /// Set a value for the feature selected with [Self::set_sensor_feature_selector]
         mut sensor_feature_value: i32;
 
+    }
+}
+
+impl Deref for Camera {
+    type Target = HANDLE;
+
+    /// Returns a reference to the wrapped device handle.
+    ///
+    /// While getting the handle itself is safe, everything that can practically be done with it
+    /// should be considered unsafe. Especially operations that change the state of the camera
+    /// (e.g. setting parameters) are undefined behavior.
+    fn deref(&self) -> &Self::Target {
+        &self.device_handle
     }
 }
 
