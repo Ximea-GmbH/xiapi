@@ -583,6 +583,9 @@ impl Camera {
         /// Set a value for the feature selected with [Self::set_sensor_feature_selector]
         mut sensor_feature_value: i32;
 
+        /// Read the sensor clock frequency in Hz
+        sensor_clock_freq_hz: f32;
+
     }
 }
 
