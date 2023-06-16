@@ -18,7 +18,7 @@ image = { version = "0.24.2", optional= true}
 
 
 [dev-dependencies]
-serial_test = { version = "0.6.0", features = ["file_locks"] }
+serial_test = { version = "2.0.0", features = ["file_locks"] }
 approx = "0.5.1"
 
 [[example]]
