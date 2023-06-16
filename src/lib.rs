@@ -52,7 +52,7 @@ mod tests {
     use XI_GAIN_SELECTOR_TYPE::XI_GAIN_SELECTOR_ALL;
     //use xiapi_sys::XI_TEST_PATTERN_GENERATOR::*;
     use crate::Roi;
-    use xiapi_sys::XI_IMG_FORMAT::XI_RAW16;
+    use xiapi_sys::XI_IMG_FORMAT::{XI_MONO8, XI_RAW16};
     use XI_LED_MODE::*;
     use XI_LED_SELECTOR::*;
     use XI_TEST_PATTERN::*;
@@ -116,6 +116,15 @@ mod tests {
                 assert_eq!(skipping_value, XI_DWN_1x1);
             }
         }
+        Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn image_format_defaults() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        let default_format = cam.image_data_format()?;
+        assert_eq!(default_format, XI_MONO8);
         Ok(())
     }
 

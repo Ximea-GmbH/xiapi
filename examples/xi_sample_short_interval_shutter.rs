@@ -2,7 +2,6 @@
  * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
  */
 use image::{ImageBuffer, Luma};
-use std::fmt::Debug;
 use xiapi_sys::XI_SENSOR_FEATURE_SELECTOR::XI_SENSOR_FEATURE_SHORT_INTERVAL_SHUTTER;
 use xiapi_sys::XI_TRG_SOURCE::XI_TRG_SOFTWARE;
 
