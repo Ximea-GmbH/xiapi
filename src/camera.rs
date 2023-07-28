@@ -602,6 +602,9 @@ impl Deref for Camera {
     }
 }
 
+unsafe impl Send for Camera {
+}
+
 impl AcquisitionBuffer {
     /// Stop the image acquisition.
     ///
@@ -660,4 +663,8 @@ impl AcquisitionBuffer {
     pub fn software_trigger(&mut self) -> Result<(), XI_RETURN> {
         unsafe { self.camera.set_param(XI_PRM_TRG_SOFTWARE, XI_SWITCH::XI_ON) }
     }
+}
+
+unsafe impl Send for AcquisitionBuffer{
+
 }
