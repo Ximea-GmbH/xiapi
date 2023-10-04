@@ -638,10 +638,19 @@ impl AcquisitionBuffer {
             xi_img,
             pix_type: PhantomData::default(),
         };
-        unsafe {
-            xiapi_sys::xiGetImage(self.camera.device_handle, timeout, &mut image.xi_img);
+        let ret = unsafe {
+            xiapi_sys::xiGetImage(self.camera.device_handle, timeout, &mut image.xi_img)
+        };
+
+        match ret as XI_RET::Type{
+            XI_RET::XI_OK => {
+                Ok(image)
+            }
+            x => {
+               Err(x as XI_RETURN)
+            }
         }
-        Ok(image)
+
     }
 
     /// Send a software trigger signal to the camera.
