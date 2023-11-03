@@ -359,16 +359,7 @@ impl Camera {
         param: &'static [u8],
         info_modifier: &'static [u8],
     ) -> Result<T, XI_RETURN> {
-        // Strings need to be sanitized and then concatenated
-        let param_utf8 = from_utf8(param).or(Err(XI_RET::XI_INVALID_ARG as i32))?;
-        let modifier_utf8 =
-            from_utf8(info_modifier).expect("UTF8 error on API constant -> Unreachable");
-        // We have to specifically trim the null character from the first string
-        let modified_param = format!(
-            "{}{}",
-            param_utf8.trim_matches(char::from(0)),
-            modifier_utf8
-        );
+        let modified_param = param_suffix(param, info_modifier)?;
         self.param(modified_param.as_bytes())
     }
 
@@ -677,11 +668,8 @@ impl AcquisitionBuffer {
 
     /// Set the exposure time of the camera while streaming.
     pub fn set_exposure(&mut self, exposure: f32) -> Result<(), XI_RETURN> {
-        // It works this way, but in the C header, XI_PRMM_DIRECT_UPDATE is defined as ":direct_update", without the space...
-        let param_c = match CStr::from_bytes_with_nul(b"exposure: direct_update\0") {
-            Ok(c) => c,
-            Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
-        };
+        let param_name = unsafe{ param_suffix(XI_PRM_EXPOSURE, XI_PRMM_DIRECT_UPDATE).unwrap()};
+        let param_c = CStr::from_bytes_with_nul( param_name.as_bytes() ).unwrap();
         let err = unsafe { xiapi_sys::xiSetParamInt(self.camera.device_handle, param_c.as_ptr(), exposure as i32) };
         match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
@@ -691,16 +679,28 @@ impl AcquisitionBuffer {
 
     /// Set the gain of the camera while streaming.
     pub fn set_gain(&mut self, gain: f32) -> Result<(), XI_RETURN> {
-        // It works this way, but in the C header, XI_PRMM_DIRECT_UPDATE is defined as ":direct_update", without the space...
-        let param_c = match CStr::from_bytes_with_nul(b"gain: direct_update\0") {
-            Ok(c) => c,
-            Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
-        };
-        let err = unsafe { xiapi_sys::xiSetParamFloat(self.camera.device_handle, param_c.as_ptr(), gain) };
+        let param_name = unsafe{ param_suffix(XI_PRM_GAIN, XI_PRMM_DIRECT_UPDATE).unwrap()};
+        let param_c = CStr::from_bytes_with_nul( param_name.as_bytes() ).unwrap();
+        let err = unsafe { xiapi_sys::xiSetParamInt(self.camera.device_handle, param_c.as_ptr(), gain as i32) };
         match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
             _ => Err(err),
         }
     }
 
+}
+
+//=================================================================================
+unsafe fn param_suffix(param: &[u8], info_modifier: &[u8]) -> Result<String, XI_RETURN> {
+// Strings need to be sanitized and then concatenated
+    let param_utf8 = from_utf8(param).or(Err(XI_RET::XI_INVALID_ARG as i32))?;
+    let modifier_utf8 =
+        from_utf8(info_modifier).expect("UTF8 error on API constant -> Unreachable");
+    // We have to specifically trim the null character from the first string
+    let modified_param = format!(
+        "{}{}",
+        param_utf8.trim_matches(char::from(0)),
+        modifier_utf8
+    );
+    Ok(modified_param)
 }
