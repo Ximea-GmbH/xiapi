@@ -668,8 +668,8 @@ impl AcquisitionBuffer {
 
     /// Set the exposure time of the camera while streaming.
     pub fn set_exposure(&mut self, exposure: f32) -> Result<(), XI_RETURN> {
-        let param_name = unsafe{ param_suffix(XI_PRM_EXPOSURE, XI_PRMM_DIRECT_UPDATE).unwrap()};
-        let param_c = CStr::from_bytes_with_nul( param_name.as_bytes() ).unwrap();
+        // Weird, If i use the param suffix, it does not works.
+        let param_c = CStr::from_bytes_with_nul( b"exposure: direct_update" ).unwrap();
         let err = unsafe { xiapi_sys::xiSetParamInt(self.camera.device_handle, param_c.as_ptr(), exposure as i32) };
         match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
