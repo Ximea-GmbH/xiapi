@@ -682,8 +682,6 @@ impl AcquisitionBuffer {
             Ok(c) => c,
             Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
         };
-        let mut tag : Vec<u8> = XI_PRM_EXPOSURE[..XI_PRM_EXPOSURE.len() - 1].to_vec();
-        tag.extend(XI_PRMM_DIRECT_UPDATE.iter());
         let err = unsafe { xiapi_sys::xiSetParamInt(self.camera.device_handle, param_c.as_ptr(), exposure as i32) };
         match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
@@ -698,9 +696,7 @@ impl AcquisitionBuffer {
             Ok(c) => c,
             Err(_) => return Err(XI_RET::XI_INVALID_ARG as XI_RETURN),
         };
-        let mut tag : Vec<u8> = XI_PRM_GAIN[..XI_PRM_GAIN.len() - 1].to_vec();
-        tag.extend(XI_PRMM_DIRECT_UPDATE.iter());
-        let err = unsafe { xiapi_sys::xiSetParamInt(self.camera.device_handle, param_c.as_ptr(), gain as i32) };
+        let err = unsafe { xiapi_sys::xiSetParamFloat(self.camera.device_handle, param_c.as_ptr(), gain) };
         match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
             _ => Err(err),
