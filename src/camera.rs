@@ -670,8 +670,11 @@ impl AcquisitionBuffer {
     pub fn set_exposure(&mut self, exposure: f32) -> Result<(), XI_RETURN> {
         // Weird, If i use the param suffix, it does not works.
         let tag = b"exposure: direct_update\0";
-        let param_c = CStr::from_bytes_with_nul( tag );
-        let param_c = param_c.unwrap();
+        let param_c = CStr::from_bytes_until_nul( tag );
+        let param_c = match param_c {
+            Ok(s) => s,
+            Err(e) => panic!("error while converting {} to c string: {}", tag, e)
+        };
         let err = unsafe { xiapi_sys::xiSetParamInt(self.camera.device_handle, param_c.as_ptr(), exposure as i32) };
         match err as XI_RET::Type {
             XI_RET::XI_OK => Ok(()),
