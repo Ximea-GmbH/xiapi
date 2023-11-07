@@ -132,6 +132,14 @@ impl<'a, T> Image<'a, T> {
     }
 }
 
+impl <'a, T> Drop for Image<'_,T>
+{
+    fn drop(&mut self) {
+        unsafe { libc::free(self.xi_img.bp as *mut libc::c_void); }
+    }
+}
+
+
 #[cfg(feature = "image")]
 impl<P> From<Image<'_, P::Subpixel>> for ImageBuffer<P, Vec<P::Subpixel>>
 where
