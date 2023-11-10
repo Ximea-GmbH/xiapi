@@ -1,10 +1,13 @@
 /*
  * Copyright (c) 2022. XIMEA GmbH - All Rights Reserved
  */
+//use xiapi_sys::XI_IMG_FORMAT;
+
 fn main() -> Result<(), i32> {
     let mut cam = xiapi::open_device(None)?;
 
     cam.set_exposure(10000.0)?;
+//    cam.set_image_data_format(XI_IMG_FORMAT::XI_RGB24)?;
 
     let buffer = cam.start_acquisition()?;
 
@@ -21,6 +24,9 @@ fn main() -> Result<(), i32> {
             ),
             None => unreachable!("Could not get pixel value from image!"),
         }
+        println!("image size: {}x{}", image.width(), image.height());
+        println!("data buffer length: {}", image.data().len());
+        println!("image format: {}", image.format());
     }
     Ok(())
 }

@@ -36,8 +36,10 @@ impl<'a, T> Image<'a, T> {
             return None;
         }
         // stride is the total length of a row in bytes
-        let stride = self.xi_img.width as usize * size_of::<T>() + self.xi_img.padding_x as usize;
-        let offset = (stride * y) + (x * size_of::<T>());
+        let nb_channels = self.nb_channels();
+        let stride = self.xi_img.width as usize * size_of::<T>() * nb_channels
+            + self.xi_img.padding_x as usize;
+        let offset = (stride * y) + (x * size_of::<T>() * nb_channels);
         unsafe {
             let pixel_pointer = buffer.add(offset) as *const T;
             pixel_pointer.as_ref()
@@ -123,13 +125,34 @@ impl<'a, T> Image<'a, T> {
         (high << 32) | low
     }
 
-    /// Get the raw image data as a slice
+    /// Get the raw image data as a slice.
     pub fn data(&'a self) -> &'a [T] {
         unsafe {
-            let length = self.xi_img.bp_size as usize / size_of::<T>();
-            from_raw_parts(self.xi_img.bp as *const T, length)
+            if self.xi_img.bp_size != 0 {
+                let length = self.xi_img.bp_size as usize / size_of::<T>();
+                from_raw_parts(self.xi_img.bp as *const T, length)
+            }
+            else {
+                let length = self.xi_img.width as usize * self.xi_img.height as usize * self.nb_channels();
+                from_raw_parts(self.xi_img.bp as *const T, length)
+            }
         }
     }
+
+    fn nb_channels(&self) -> usize
+    {
+        match self.xi_img.frm {
+            xiapi_sys::XI_IMG_FORMAT::XI_MONO8  => 1,
+            xiapi_sys::XI_IMG_FORMAT::XI_MONO16 => 1,
+            xiapi_sys::XI_IMG_FORMAT::XI_RAW8   => 1,
+            xiapi_sys::XI_IMG_FORMAT::XI_RAW16  => 1,
+            xiapi_sys::XI_IMG_FORMAT::XI_RGB24  => 3,
+            xiapi_sys::XI_IMG_FORMAT::XI_RGB32  => 4,
+
+            _ => 0,
+        }
+    }
+
 }
 
 #[cfg(feature = "image")]
