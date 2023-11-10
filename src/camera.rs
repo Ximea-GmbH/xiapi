@@ -602,7 +602,7 @@ impl Camera {
         mut wb_kb: f32;
 
         /// Recent Frame mode.
-        mut recent_frame: i32;
+        mut recent_frame: u32;
     }
 }
 
