@@ -600,6 +600,9 @@ impl Camera {
 
         /// White balance Blue coefficient.
         mut wb_kb: f32;
+
+        /// Recent Frame mode.
+        mut recent_frame: i32;
     }
 }
 
