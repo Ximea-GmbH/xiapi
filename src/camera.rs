@@ -586,6 +586,23 @@ impl Camera {
         /// Read the sensor clock frequency in Hz
         sensor_clock_freq_hz: f32;
 
+        /// Data move policy
+        mut buffer_policy: i32;
+
+        /// Auto white balance mode.
+        mut auto_wb: XI_SWITCH::Type;
+
+        /// White balance Red coefficient.
+        mut wb_kr: f32;
+
+        /// White balance Green coefficient.
+        mut wb_kg: f32;
+
+        /// White balance Blue coefficient.
+        mut wb_kb: f32;
+
+        /// Recent Frame mode.
+        mut recent_frame: XI_SWITCH::Type;
     }
 }
 
