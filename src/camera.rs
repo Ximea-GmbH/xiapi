@@ -590,7 +590,7 @@ impl Camera {
         mut buffer_policy: i32;
 
         /// Auto white balance mode.
-        mut auto_wb: i32;
+        mut auto_wb: XI_SWITCH::Type;
 
         /// White balance Red coefficient.
         mut wb_kr: f32;
@@ -602,7 +602,7 @@ impl Camera {
         mut wb_kb: f32;
 
         /// Recent Frame mode.
-        mut recent_frame: u32;
+        mut recent_frame: XI_SWITCH::Type;
     }
 }
 
