@@ -602,6 +602,9 @@ impl Deref for Camera {
     }
 }
 
+unsafe impl Send for Camera {
+}
+
 impl AcquisitionBuffer {
     /// Stop the image acquisition.
     ///
@@ -635,10 +638,19 @@ impl AcquisitionBuffer {
             xi_img,
             pix_type: PhantomData::default(),
         };
-        unsafe {
-            xiapi_sys::xiGetImage(self.camera.device_handle, timeout, &mut image.xi_img);
+        let ret = unsafe {
+            xiapi_sys::xiGetImage(self.camera.device_handle, timeout, &mut image.xi_img)
+        };
+
+        match ret as XI_RET::Type{
+            XI_RET::XI_OK => {
+                Ok(image)
+            }
+            x => {
+               Err(x as XI_RETURN)
+            }
         }
-        Ok(image)
+
     }
 
     /// Send a software trigger signal to the camera.
@@ -660,4 +672,8 @@ impl AcquisitionBuffer {
     pub fn software_trigger(&mut self) -> Result<(), XI_RETURN> {
         unsafe { self.camera.set_param(XI_PRM_TRG_SOFTWARE, XI_SWITCH::XI_ON) }
     }
+}
+
+unsafe impl Send for AcquisitionBuffer{
+
 }

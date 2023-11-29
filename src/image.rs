@@ -132,6 +132,10 @@ impl<'a, T> Image<'a, T> {
     }
 }
 
+unsafe impl<'a,T> Send for Image<'a, T>{
+
+}
+
 #[cfg(feature = "image")]
 impl<P> From<Image<'_, P::Subpixel>> for ImageBuffer<P, Vec<P::Subpixel>>
 where

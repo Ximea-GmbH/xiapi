@@ -233,7 +233,7 @@ mod tests {
     #[test]
     #[serial]
     fn read_counters() -> Result<(), XI_RETURN> {
-        let mut cam = open_device(None)?;
+        let mut cam = open_device_manual_bandwidth(None, 1000)?;
         let skipped_frames =
             cam.counter(XI_COUNTER_SELECTOR::XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES)?;
         assert_eq!(skipped_frames, 0);
