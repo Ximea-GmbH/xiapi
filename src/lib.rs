@@ -247,12 +247,22 @@ mod tests {
         let exposure_low = unsafe {
             let handle = *cam;
             let mut value = 0.0f32;
-            xiapi_sys::xiGetParamFloat(handle,  XI_PRM_EXPOSURE.as_ptr() as *const c_char, &mut value);
+            xiapi_sys::xiGetParamFloat(handle, XI_PRM_EXPOSURE.as_ptr() as *const c_char, &mut value);
             value
         };
         let exposure_high = cam.exposure()?;
         assert_eq!(exposure_high, exposure_low);
         Ok(())
+    }
 
+    #[test]
+    #[serial]
+    fn set_get_acq_buffer_size() -> Result<(), XI_RETURN> {
+        let mut cam = open_device(None)?;
+        // Set the buffer size to 100MB.
+        cam.set_acq_buffer_size(100 * 1024 * 1024)?;
+        let buffer_size = cam.acq_buffer_size()?;
+        assert_eq!(buffer_size, 100 * 1024 * 1024);
+        Ok(())
     }
 }

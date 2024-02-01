@@ -11,6 +11,7 @@ use std::str::from_utf8;
 
 use paste::paste;
 use xiapi_sys::*;
+use xiapi_sys::XI_RET::XI_INVALID_ARG;
 
 use crate::Image;
 use crate::Roi;
@@ -448,6 +449,50 @@ impl Camera {
         self.set_counter_selector(prev_selector)?;
         Ok(result)
     }
+
+    /// Set the size of the acquisition buffer in bytes.
+    /// For buffer sizes larger than 2GB the actual value may be slightly larger than specified.
+    /// Returns the actual value set to the camera.
+    pub fn set_acq_buffer_size(&mut self, size_in_bytes: usize) -> Result<usize,XI_RETURN>{
+
+        if size_in_bytes == 0 {
+            // Acquisition buffer size can't be zero
+            return Err(XI_INVALID_ARG as XI_RETURN);
+        }
+
+        let max_param_value = unsafe {
+            match self.param_max::<i32>(XI_PRM_ACQ_BUFFER_SIZE) {
+                Ok(size) => {size}
+                Err(_err) => {
+                    // This should never happen
+                    debug_assert!(false, "Could not get maximum acq buffer size, Error:{_err}");
+                    // But if it does in production, we can assume i32::MAX as a workaround
+                    i32::MAX
+                }
+            }
+        };
+
+        assert_ne!(max_param_value, 0, "xiAPI reports maximum buffer size of zero");
+
+        let unit_value = size_in_bytes.div_ceil(max_param_value as usize);
+        let size_value = size_in_bytes.div_ceil(unit_value);
+
+        unsafe {
+            self.set_param(XI_PRM_ACQ_BUFFER_SIZE_UNIT, unit_value as i32)?;
+            self.set_param(XI_PRM_ACQ_BUFFER_SIZE, size_value as i32)?;
+        }
+
+        Ok(size_value*unit_value)
+
+    }
+
+    /// Size of the acquisition buffer in bytes
+    pub fn acq_buffer_size(&self) -> Result<usize, XI_RETURN> {
+        let size = unsafe { self.param::<i32>(XI_PRM_ACQ_BUFFER_SIZE) }?;
+        let unit = unsafe { self.param::<i32>(XI_PRM_ACQ_BUFFER_SIZE_UNIT) }?;
+        Ok(size as usize * unit as usize)
+    }
+
 
     param! {
         /// Current exposure time in microseconds.
