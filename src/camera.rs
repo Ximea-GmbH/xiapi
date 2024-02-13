@@ -291,6 +291,30 @@ impl ParamType for u32 {
     }
 }
 
+impl ParamType for u64 {
+    // Selectors in xiAPI are defined as unsigned int, but treated as if they were signed
+    unsafe fn get_param(handle: HANDLE, prm: *const c_char, value: &mut Self) -> XI_RETURN {
+        let mut size: DWORD = std::mem::size_of::<Self>() as DWORD;
+        let mut xi_type_integer64: u32 = XI_PRM_TYPE::xiTypeInteger64 as u32;
+        xiapi_sys::xiGetParam(
+            handle,
+            prm,
+            value as *mut _ as *mut std::os::raw::c_void,
+            &mut size,
+            &mut xi_type_integer64
+        )
+    }
+
+    unsafe fn set_param(handle: HANDLE, prm: *const c_char, value: Self) -> XI_RETURN {
+        xiapi_sys::xiSetParam(
+            handle,
+            prm,
+            &value as *const _ as *mut std::os::raw::c_void,
+            std::mem::size_of::<Self>() as DWORD, XI_PRM_TYPE::xiTypeInteger64
+        )
+    }
+}
+
 impl Camera {
     /// Starts the image acquisition on this camera
     ///
@@ -555,6 +579,12 @@ impl Camera {
         /// This setting is only valid if the trigger selector is set to XI_TRG_SEL_FRAME_BURST_START
         mut acq_frame_burst_count: u32;
 
+        /// Defines the acquisition timing mode
+        mut acq_timing_mode: XI_ACQ_TIMING_MODE::Type;
+
+        /// Defines frames per second of sensor
+        mut framerate: f32;
+
         /// Selects a GPI
         mut gpi_selector: XI_GPI_SELECTOR::Type;
 
@@ -625,14 +655,23 @@ impl Camera {
         /// Select a sensor specific feature
         mut sensor_feature_selector: XI_SENSOR_FEATURE_SELECTOR::Type;
 
+        /// Read color filter array type of RAW data.
+        color_filter_array: XI_COLOR_FILTER_ARRAY::Type;
+
         /// Set a value for the feature selected with [Self::set_sensor_feature_selector]
         mut sensor_feature_value: i32;
 
         /// Read the sensor clock frequency in Hz
         sensor_clock_freq_hz: f32;
 
+        /// Reads the current timestamp value from camera in nanoseconds (only valid for xiB, xiC, xiX camera families).
+        timestamp: u64;
+
         /// Data move policy
         mut buffer_policy: i32;
+
+        /// buffers_queue_size - 1 is the maximum number of images which can be stored in the buffers queue.
+        mut buffers_queue_size: i32;
 
         /// Auto white balance mode.
         mut auto_wb: XI_SWITCH::Type;
@@ -648,6 +687,9 @@ impl Camera {
 
         /// Recent Frame mode.
         mut recent_frame: XI_SWITCH::Type;
+
+        /// Configures image data delivery target to CPU RAM (default) or GPU RAM.
+        mut transport_data_target: XI_TRANSPORT_DATA_TARGET_MODE::Type;
     }
 }
 
