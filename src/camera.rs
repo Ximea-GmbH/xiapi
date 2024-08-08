@@ -726,6 +726,25 @@ impl AcquisitionBuffer {
         }
     }
 
+    /// Set the exposure on the camera related to this Acquisition Buffer
+    ///
+    /// This function allows users to change the exposure time setting during a running acquisition.
+    /// Note that changes affect only images that are acquired after the settings is changed.
+    /// Images with the old exposure setting may still be in the buffer.
+    pub fn set_exposure(&mut self, value: f32) -> Result<(), XI_RETURN> {
+        self.camera.set_exposure(value)
+    }
+
+    /// Sets the gain value of the camera related to this Acquistion Buffer
+    ///
+    /// This function allows users to change the gain value during a running acquisition.
+    /// Note that changes affect only images that are acquired after the setting is changed.
+    ///Images with the old gain value may still be in the buffer.
+    ///
+    pub fn set_gain(&mut self, value: f32) -> Result<(), XI_RETURN> {
+        self.camera.set_gain(value)
+    }
+
     /// Get the next image.
     ///
     /// Returns an [Image] which refers to memory in this [AcquisitionBuffer].

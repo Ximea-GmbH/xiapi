@@ -56,7 +56,6 @@ mod tests {
     use XI_LED_MODE::*;
     use XI_LED_SELECTOR::*;
     use XI_TEST_PATTERN::*;
-
     use crate::open_device;
 
     #[test]
@@ -264,5 +263,13 @@ mod tests {
         let buffer_size = cam.acq_buffer_size()?;
         assert_eq!(buffer_size, 100 * 1024 * 1024);
         Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn set_exposure_during_acq() -> Result<(), XI_RETURN> {
+        let cam = open_device(None)?;
+        let mut acq = cam.start_acquisition()?;
+        acq.set_exposure(100.0)
     }
 }
