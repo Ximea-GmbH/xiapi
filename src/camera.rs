@@ -560,6 +560,12 @@ impl Camera {
         /// Image ROI offset in the vertical direction
         mut offset_y: u32;
 
+        /// Activates horizontal flip if available in camera.
+        mut horizontal_flip: XI_SWITCH::Type;
+
+        /// Activates vertical flip if available in camera.
+        mut vertical_flip: XI_SWITCH::Type;
+
         /// Camera acquisition data-rate limit on transport layer in Megabits per second.
         mut limit_bandwidth: i32;
 
